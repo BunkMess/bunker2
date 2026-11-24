@@ -36,6 +36,16 @@ html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"
 @keyframes gfly2{0%{transform:translate(-140px,180px) scale(.7);opacity:0}20%{opacity:1}100%{transform:translate(180px,-260px) scale(1.2);opacity:0}}
 .gin{animation:gin .5s ease-out}.gfloat{animation:gfloat 2s ease-in-out infinite}
 .gdelta{position:absolute;right:0;top:-8px;font-weight:700;animation:gdelta 1.8s forwards;pointer-events:none}
+@keyframes gup{0%{transform:translate(0,40px) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(var(--x),-55vh) scale(1.1);opacity:0}}
+@keyframes gfall{0%{transform:translate(var(--x),-45vh) rotate(0);opacity:0}15%{opacity:1}100%{transform:translate(calc(var(--x)*1.4),45vh) rotate(var(--r));opacity:0}}
+@keyframes gconf{0%{transform:translate(0,0) rotate(0) scale(.4);opacity:1}55%{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1);opacity:1}100%{transform:translate(calc(var(--x)*1.1),calc(var(--y) + 220px)) rotate(calc(var(--r)*2));opacity:0}}
+@keyframes gring{0%{transform:scale(1);opacity:1}100%{transform:scale(9);opacity:0}}
+@keyframes gover{0%{opacity:0}10%,78%{opacity:1}100%{opacity:0}}
+@keyframes ghit{0%,100%{transform:translate(0,0)}20%{transform:translate(-8px,3px) scale(.994)}40%{transform:translate(7px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(2px,-1px)}}
+@keyframes gland{0%{opacity:0;transform:scale(1.7) translateY(-24px)}55%{opacity:1;transform:scale(.93)}100%{opacity:1;transform:scale(1)}}
+.gland{animation:gland .6s 1.6s both}.ghit{animation:ghit .45s}
+.out{background:color-mix(in srgb,var(--acc) 70%,transparent);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);border:1px solid color-mix(in srgb,var(--acc) 45%,rgba(255,255,255,.35));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.inb{background:var(--glass);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--gb);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
 </style>
 </head>
 <body>
@@ -43,7 +53,7 @@ html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"
 <script type="text/babel" data-type="module">
 import React,{useState,useEffect,useMemo,useRef} from "react";
 import {createRoot} from "react-dom/client";
-import {Send,MessageCircle,Users,Settings,Shield,Search,Smile,Check,CheckCheck,BadgeCheck,Ban,Trash2,Megaphone,ArrowLeft,LogOut,X,Gift,Coins} from "lucide-react";
+import {Send,MessageCircle,Users,Settings,Shield,Search,Smile,Check,CheckCheck,BadgeCheck,Ban,Trash2,Megaphone,ArrowLeft,LogOut,X,Gift,Coins,User,Palette,Globe,Camera} from "lucide-react";
 import {initializeApp} from "firebase/app";
 import {getAuth,RecaptchaVerifier,signInWithPhoneNumber,onAuthStateChanged,signOut} from "firebase/auth";
 import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,query,where,writeBatch,increment,arrayUnion,runTransaction} from "firebase/firestore";
@@ -95,7 +105,7 @@ const WALLS={none:"none",dots:"radial-gradient(rgba(128,128,128,.3) 1.5px,transp
 const WSIZE={dots:"22px 22px",grid:"24px 24px"};
 const DL=(navigator.language||"").startsWith("ru")?"ru":"en";
 const loadPrefs=()=>{try{return{theme:"dark",acc:"Blue",wall:"none",lang:DL,...JSON.parse(localStorage.getItem(PK))}}catch{return{theme:"dark",acc:"Blue",wall:"none",lang:DL}}};
-const L={ru:{"Account settings": "Настройки аккаунта", "Chats": "Чаты", "Users": "Люди", "Settings": "Настройки", "Admin": "Админ", "Search": "Поиск", "No users found.": "Никого не найдено.", "No chats yet. Open Users to start one.": "Чатов пока нет. Откройте «Люди», чтобы начать.", "Select a chat to start messaging": "Выберите чат, чтобы начать общение", "online": "в сети", "last seen ": "был(а) ", "No messages yet. Say hi!": "Сообщений пока нет. Поздоровайтесь!", "Write a message…": "Напишите сообщение…", "You are banned from sending messages.": "Вам запрещено отправлять сообщения.", "You": "Вы", "You sent": "Вы отправили", "sent you": "отправил(а) вам", "Announcement:": "Объявление:", "limited": "лимит", "Upload photo": "Загрузить фото", "Remove photo": "Удалить фото", "Display name": "Имя", "Bio": "О себе", "Save changes": "Сохранить", "Saved": "Сохранено", "Wallet": "Кошелёк", "Claim": "Получить", "coins": "монет", "Next bonus in ": "Следующий бонус через ", "h": "ч", "Appearance": "Оформление", "Language": "Язык", "Log out": "Выйти", "Light (VK Clean)": "Светлая", "Dark (Strict)": "Тёмная", "Midnight Blue": "Полночный синий", "AMOLED Black": "AMOLED чёрная", "No wallpaper": "Без обоев", "dots": "Точки", "grid": "Сетка", "waves": "Волны", "Username": "Имя пользователя", "No bio yet": "Пока пусто", "Registered": "Регистрация", "Gifts showcase": "Витрина подарков", "No gifts yet.": "Подарков пока нет.", "Send message": "Написать", "Send gift": "Подарить", "Gift for": "Подарок для", "Gifts": "Подарки", "NFT · Limited": "NFT · Лимит", "Add a message (optional)": "Добавьте сообщение (необязательно)", "Balance after:": "Баланс после:", "Sold out": "Распродано", "Not enough coins": "Не хватает монет", "Send": "Отправить", "for": "за", "left": "осталось", "Sign in with your phone number": "Вход по номеру телефона", "Send SMS code": "Отправить SMS-код", "Sending…": "Отправка…", "Admin quick login": "Быстрый вход админа", "Enter the 6-digit code sent to": "Введите 6-значный код, отправленный на", "Verify and continue": "Подтвердить", "Checking…": "Проверка…", "Use a different number": "Другой номер", "Set up your profile": "Настройте профиль", "Bio (optional)": "О себе (необязательно)", "Create profile": "Создать профиль", "Cancel and sign out": "Отмена и выход"}};
+const L={ru:{"Profile":"Профиль","Theme":"Тема","Accent color":"Цвет акцента","Wallpaper":"Обои","Balance":"Баланс","Account settings": "Настройки аккаунта", "Chats": "Чаты", "Users": "Люди", "Settings": "Настройки", "Admin": "Админ", "Search": "Поиск", "No users found.": "Никого не найдено.", "No chats yet. Open Users to start one.": "Чатов пока нет. Откройте «Люди», чтобы начать.", "Select a chat to start messaging": "Выберите чат, чтобы начать общение", "online": "в сети", "last seen ": "был(а) ", "No messages yet. Say hi!": "Сообщений пока нет. Поздоровайтесь!", "Write a message…": "Напишите сообщение…", "You are banned from sending messages.": "Вам запрещено отправлять сообщения.", "You": "Вы", "You sent": "Вы отправили", "sent you": "отправил(а) вам", "Announcement:": "Объявление:", "limited": "лимит", "Upload photo": "Загрузить фото", "Remove photo": "Удалить фото", "Display name": "Имя", "Bio": "О себе", "Save changes": "Сохранить", "Saved": "Сохранено", "Wallet": "Кошелёк", "Claim": "Получить", "coins": "монет", "Next bonus in ": "Следующий бонус через ", "h": "ч", "Appearance": "Оформление", "Language": "Язык", "Log out": "Выйти", "Light (VK Clean)": "Светлая", "Dark (Strict)": "Тёмная", "Midnight Blue": "Полночный синий", "AMOLED Black": "AMOLED чёрная", "No wallpaper": "Без обоев", "dots": "Точки", "grid": "Сетка", "waves": "Волны", "Username": "Имя пользователя", "No bio yet": "Пока пусто", "Registered": "Регистрация", "Gifts showcase": "Витрина подарков", "No gifts yet.": "Подарков пока нет.", "Send message": "Написать", "Send gift": "Подарить", "Gift for": "Подарок для", "Gifts": "Подарки", "NFT · Limited": "NFT · Лимит", "Add a message (optional)": "Добавьте сообщение (необязательно)", "Balance after:": "Баланс после:", "Sold out": "Распродано", "Not enough coins": "Не хватает монет", "Send": "Отправить", "for": "за", "left": "осталось", "Sign in with your phone number": "Вход по номеру телефона", "Send SMS code": "Отправить SMS-код", "Sending…": "Отправка…", "Admin quick login": "Быстрый вход админа", "Enter the 6-digit code sent to": "Введите 6-значный код, отправленный на", "Verify and continue": "Подтвердить", "Checking…": "Проверка…", "Use a different number": "Другой номер", "Set up your profile": "Настройте профиль", "Bio (optional)": "О себе (необязательно)", "Create profile": "Создать профиль", "Cancel and sign out": "Отмена и выход"}};
 let LANG="en";
 const tr=k=>(L[LANG]&&L[LANG][k])||k;
 const resize=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const S=192,c=document.createElement("canvas");c.width=c.height=S;const m=Math.min(im.width,im.height);c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);res(c.toDataURL("image/jpeg",.82))};im.onerror=()=>rej(new Error("Not an image"));im.src=r.result};r.onerror=rej;r.readAsDataURL(file)});
@@ -268,55 +278,122 @@ function GiftPicker({to,me,free,onClose,onSent}){
     </div></Modal>);
 }
 
-function GiftAnim({a,onDone}){
-  const g=a.g,c=RC[g.r];
-  useEffect(()=>{const t=setTimeout(onDone,2600);return()=>clearTimeout(t)},[]);
-  const ps=useMemo(()=>g.fx==="up"?Array.from({length:14},()=>({x:(Math.random()-.5)*280,dl:Math.random()*.9,s:22+Math.random()*30})):[],[]);
+const K=(...a)=>a.map(x=>typeof x==="string"?{transform:x}:{transform:x[0],filter:x[1]||"none"});
+const P6="perspective(600px) ";
+// Unique intro animation for every gift (Web Animations keyframes); all end at scale(1)
+const INTRO={
+ heart:K("scale(.2)","scale(1.4)","scale(1)","scale(1.3)","scale(1)"),
+ star:K("rotate(-540deg) scale(.1)","rotate(0) scale(1.35)","scale(1)"),
+ choco:K("translateY(-70vh) rotate(-30deg)","translateY(0) scale(1.1,.8)","translateY(-60px) scale(.95,1.05)","translateY(0) scale(1.08,.9)","scale(1)"),
+ fire:K("scale(.3)","scale(1.15) rotate(-6deg)","scale(.95) rotate(5deg)","scale(1.2) rotate(-4deg)","scale(1.02) rotate(3deg)","scale(1)"),
+ rose:K("scale(0) rotate(-120deg)","scale(1.2) rotate(15deg)","scale(1) rotate(0)"),
+ party:K("scale(.2) rotate(-20deg)","scale(1.4) rotate(14deg)","scale(.9) rotate(-10deg)","scale(1.15) rotate(6deg)","scale(1)"),
+ cake:K("translateY(60vh) scale(.6)","translateY(-20px) rotate(-8deg)","rotate(8deg)","rotate(-5deg)","scale(1)"),
+ teddy:K("translateY(-60vh)","translateY(0) scale(1.3,.7)","translateY(-110px) scale(.85,1.2)","translateY(0) scale(1.15,.85)","translateY(-40px)","scale(1)"),
+ champ:K("rotate(-35deg) scale(.6)","rotate(-35deg) translateX(-8px)","rotate(-35deg) translateX(8px)","rotate(-35deg) translateX(-8px)","rotate(10deg) scale(1.3)","rotate(0) scale(1)"),
+ rocket:K("translateY(60vh) scale(.6)","translate(-6px,20px)","translate(6px,0)","translateY(-30px) scale(1.15)","scale(1)"),
+ trophy:K(["scale(.3) translateY(40px)","brightness(3)"],["scale(1.25)","brightness(1.8)"],["scale(1)","none"]),
+ diamond:K([P6+"rotateY(0) scale(.4)"],[P6+"rotateY(360deg) scale(1.3)","brightness(2.4)"],[P6+"rotateY(720deg) scale(1)","none"]),
+ ring:K(P6+"rotateY(0) scale(.5)",P6+"rotateY(1080deg) scale(1.2)",P6+"rotateY(1440deg) scale(1)"),
+ crown:K("translateY(-70vh) rotate(-15deg)","translateY(0) rotate(6deg)","translateY(-30px) rotate(-3deg)","scale(1)"),
+ car:K("translateX(-110vw) skewX(-25deg)","translateX(40px) skewX(8deg)","translateX(-12px) skewX(-3deg)","scale(1)"),
+ cash:K("scale(.3)","scale(1.2) rotate(-10deg)","rotate(10deg)","rotate(-8deg)","rotate(6deg)","scale(1) rotate(0)"),
+ n_skull:K(["scale(.5)"],["translate(8px,-4px) scale(1.1)","hue-rotate(90deg) saturate(3)"],["translate(-10px,6px)","hue-rotate(200deg)"],["translate(6px,3px) scale(1.15)","hue-rotate(300deg) saturate(3)"],["scale(1)","none"]),
+ n_orb:K(["translateY(40px) scale(.3)"],["translateY(-20px) scale(1.2)","hue-rotate(180deg) brightness(1.6)"],["translateY(10px)","hue-rotate(360deg)"],["scale(1)","none"]),
+ n_eagle:K("translate(-60vw,-50vh) rotate(-25deg) scale(.5)","translate(20vw,-10vh) rotate(15deg) scale(1.3)","translate(-4vw,3vh) rotate(-6deg)","scale(1)"),
+ n_dragon:K("translateX(-70vw) rotate(-40deg) scale(.6)","translate(10vw,-8vh) rotate(20deg) scale(1.2)","translate(-6vw,6vh) rotate(-12deg)","translate(3vw,-2vh) rotate(5deg)","scale(1)"),
+ n_galaxy:K(["scale(.05) rotate(0)"],["scale(1.6) rotate(360deg)","hue-rotate(180deg)"],["scale(1) rotate(720deg)","none"]),
+ n_comet:K("translate(80vw,-70vh) scale(.5)","translate(-6vw,4vh) scale(1.3)","scale(1)")};
+// Per-gift particles: [emoji, mode(up|fall|burst), count, dirX, dirY]
+const PT={heart:["❤️","up",14],star:["✨","burst",16],choco:["🍫","fall",10],fire:["🔥","up",12],rose:["🌹","fall",12],party:["🎊","burst",20],cake:["✨","up",10],teddy:["💛","burst",10],champ:["🫧","up",16],rocket:["💨","burst",12,0,220],trophy:["⭐","fall",12],diamond:["✨","burst",18],ring:["💫","burst",12],crown:["⭐","burst",14],car:["💨","burst",12,-280,0],cash:["🪙","fall",16],n_skull:["☠️","burst",8],n_orb:["✨","up",14],n_eagle:["🪶","fall",12],n_dragon:["🔥","burst",14,260,0],n_galaxy:["⭐","burst",24],n_comet:["☄️","burst",10,-260,200]};
+const CONF=["#f43f5e","#f59e0b","#22c55e","#3b82f6","#a855f7","#fde047","#ffffff"];
+const tgt=()=>{const W=innerWidth,H=innerHeight;return[W>=768?(332+W)/2:W/2,H*.62]};
+
+// Timeline: confetti burst + unique intro (1.1s) -> gift slams into the chat (0.5s) -> shockwave + chat shake
+function GiftAnim({a,onDone,onHit}){
+  const g=a.g,c=RC[g.r],ref=useRef(null),[ring,setRing]=useState(false);
+  const [e,mode,n,vx=0,vy=0]=PT[g.id]||["✨","burst",12];
+  const parts=useMemo(()=>Array.from({length:n},()=>({x:vx+(Math.random()-.5)*(vx?160:300),y:vy+(Math.random()-.5)*(vy?160:300),r:Math.round(Math.random()*540-270)+"deg",d:Math.random()*.7,s:18+Math.random()*20})),[]);
+  const conf=useMemo(()=>Array.from({length:46},(_,i)=>{const an=Math.random()*6.283,di=120+Math.random()*260;return{x:Math.cos(an)*di,y:Math.sin(an)*di-80,r:Math.round(Math.random()*720)+"deg",c:CONF[i%CONF.length],w:6+Math.random()*7,h:10+Math.random()*8,d:Math.random()*.15,o:i%3?2:"50%"}}),[]);
+  useEffect(()=>{
+    const el=ref.current,[tx,ty]=tgt();
+    el.animate(INTRO[g.id]||K("scale(.3)","scale(1.25)","scale(1)"),{duration:1100,easing:"ease-out",fill:"forwards"});
+    const t1=setTimeout(()=>el.animate([{transform:"translate(0,0) scale(1) rotate(0)"},{transform:`translate(${tx-innerWidth/2}px,${ty-innerHeight/2}px) scale(.3) rotate(35deg)`}],{duration:480,easing:"cubic-bezier(.55,0,.9,.4)",fill:"forwards"}),1150);
+    const t2=setTimeout(()=>{setRing(true);onHit&&onHit()},1630);
+    const t3=setTimeout(onDone,2600);
+    return()=>[t1,t2,t3].forEach(clearTimeout);
+  },[]);
+  const [tx,ty]=tgt();
   return(
-    <div className="fixed inset-0 z-[60] pointer-events-none grid place-items-center overflow-hidden" style={{background:"rgba(0,0,0,.75)",animation:"gfade 2.6s forwards"}}>
-      {ps.map((p,i)=><div key={i} className="absolute" style={{bottom:-40,left:"calc(50% - 20px)","--x":p.x+"px",animation:`grise 2.2s ${p.dl}s ease-out both`}}><GImg g={g} size={p.s}/></div>)}
-      <div className="text-center" style={{filter:g.max?`drop-shadow(0 0 28px ${c})`:"none"}}>
-        <div className="flex justify-center" style={{animation:g.fx==="fly"?"gfly2 2.2s ease-in forwards":"gpop 2.4s ease-out forwards"}}><GImg g={g} size={140}/></div>
-        <div className="mt-4 text-xs uppercase" style={{color:c,letterSpacing:".3em",animation:"gtext 2.4s forwards"}}>{g.n}{a.no?` · #${a.no}/${g.max}`:""}</div>
+    <div className="fixed inset-0 z-[60] pointer-events-none overflow-hidden" style={{background:"rgba(0,0,0,.6)",animation:"gover 2.6s forwards"}}>
+      <div className="absolute" style={{left:"50%",top:"50%"}}>
+        {conf.map((p,i)=><span key={i} className="absolute" style={{width:p.w,height:p.h,background:p.c,borderRadius:p.o,"--x":p.x+"px","--y":p.y+"px","--r":p.r,animation:`gconf 1.5s ${p.d}s cubic-bezier(.1,.7,.3,1) both`}}/>)}
+        {parts.map((p,i)=><span key={"p"+i} className="absolute" style={{fontSize:p.s,"--x":p.x+"px","--y":p.y+"px","--r":p.r,animation:`${mode==="up"?"gup":mode==="fall"?"gfall":"gfly"} 1.6s ${p.d}s ease-out both`}}>{e}</span>)}
+        <div className="absolute" style={{left:-70,top:-70,filter:g.max?`drop-shadow(0 0 26px ${c})`:undefined}}><div ref={ref}><GImg g={g} size={140}/></div></div>
+        <div className="absolute whitespace-nowrap text-xs uppercase" style={{left:0,top:100,transform:"translateX(-50%)",color:c,letterSpacing:".3em",animation:"gtext 1.5s forwards"}}>{g.n}{a.no?` · #${a.no}/${g.max}`:""}</div>
       </div>
+      {ring&&<div className="absolute rounded-full" style={{left:tx-10,top:ty-10,width:20,height:20,border:`3px solid ${c}`,animation:"gring .7s ease-out forwards"}}/>}
     </div>);
 }
 
 function Prefs({me,logout,prefs,save}){
-  const [f,setF]=useState({name:me.name,bio:me.bio||"",emoji:me.emoji,color:me.color}),[ok,setOk]=useState(false),[perr,setPerr]=useState("");
-  const fileRef=useRef(null);
+  const [sec,setSec]=useState("profile"),[f,setF]=useState({name:me.name,bio:me.bio||"",emoji:me.emoji,color:me.color}),[ok,setOk]=useState(false),[perr,setPerr]=useState("");
+  const fileRef=useRef(null),ref=doc(db,"users",me.uid);
   const set=p=>{setOk(false);setF(o=>({...o,...p}))};
   const left=864e5-(Date.now()-(me.lastBonus||0)),ready=left<=0;
-  const ref=doc(db,"users",me.uid);
   const sv=async()=>{if(!f.name.trim())return;await updateDoc(ref,{name:f.name.trim(),bio:f.bio.trim(),emoji:f.emoji,color:f.color});setOk(true)};
   const claim=()=>updateDoc(ref,{coins:increment(BONUS),lastBonus:Date.now()});
   const pick=async e=>{const file=e.target.files[0];e.target.value="";if(!file)return;setPerr("");try{await updateDoc(ref,{photo:await resize(file)})}catch(x){setPerr(x.message||"Could not load image")}};
-  const chip=on=>`rounded-full px-3.5 py-1.5 text-sm ${on?"acb":"sel"}`;
-  const card="pn rounded-3xl p-5 max-w-md space-y-3";
+  const card="pn rounded-3xl p-5 space-y-4",tile=on=>"rounded-2xl p-2 text-center text-xs border-2 "+(on?"":"border-transparent"),ring=on=>on?{borderColor:"var(--acc)"}:null;
+  const lab=t=><div className="text-xs mu uppercase tracking-widest">{tr(t)}</div>;
+  const secs=[["profile",User,"Profile"],["look",Palette,"Appearance"],["lang",Globe,"Language"],["wallet",Wallet,"Wallet"]];
   return(
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 space-y-4 tx">
-      <div className={card}><h2 className="text-xl font-bold">{tr("Account settings")}</h2>
-        <div className="flex items-center gap-4"><Avatar u={{...me,...f}} size={76}/>
-          <div className="space-y-1.5"><input ref={fileRef} type="file" accept="image/*" hidden onChange={pick}/>
-            <button onClick={()=>fileRef.current.click()} className={B}>{tr("Upload photo")}</button>
-            {me.photo&&<button onClick={()=>updateDoc(ref,{photo:""})} className="block text-sm mu">{tr("Remove photo")}</button>}</div></div>
-        {perr&&<p className="text-sm text-red-500">{perr}</p>}
-        <div className="text-sm mu">@{me.username}</div>
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 tx"><div className="max-w-xl mx-auto space-y-4">
+      <div className="pn rounded-3xl overflow-hidden">
+        <div className="h-28 p-4 text-white/90 text-sm font-semibold" style={{background:"linear-gradient(120deg,var(--acc),#a855f7 70%,#ec4899)"}}>{tr("Account settings")}</div>
+        <div className="px-5 pb-5">
+          <div className="relative -mt-12 w-24"><div className="rounded-full p-1 pn"><Avatar u={{...me,...f}} size={88}/></div>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={pick}/>
+            <button title={tr("Upload photo")} onClick={()=>fileRef.current.click()} className="absolute bottom-1 right-0 w-8 h-8 rounded-full acb grid place-items-center"><Camera size={16}/></button></div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="min-w-0"><div className="text-xl"><Name u={{...me,...f}}/></div><div className="text-sm mu">@{me.username}</div></div>
+            <span className="pn rounded-full px-3 py-1.5 text-sm flex items-center gap-1.5 shrink-0"><Coins size={15} className="act"/>{me.coins||0}</span></div>
+          {perr&&<p className="text-sm text-red-500 mt-2">{perr}</p>}
+        </div></div>
+      <div className="pn rounded-full p-1 flex gap-1">{secs.map(([k,I,l])=>(
+        <button key={k} onClick={()=>setSec(k)} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm ${sec===k?"dockon font-semibold":"mu"}`}><I size={16}/><span className="hidden sm:inline">{tr(l)}</span></button>))}</div>
+
+      {sec==="profile"&&<div className={card}>
         <input className="inp" value={f.name} onChange={e=>set({name:e.target.value})} maxLength={30} placeholder={tr("Display name")}/>
-        <textarea className="inp resize-none" rows={2} value={f.bio} onChange={e=>set({bio:e.target.value})} maxLength={140} placeholder={tr("Bio")}/>
+        <textarea className="inp resize-none" rows={3} value={f.bio} onChange={e=>set({bio:e.target.value})} maxLength={140} placeholder={tr("Bio")}/>
         <Picker f={f} set={set}/>
-        <div className="flex items-center gap-3"><button onClick={sv} className={B}>{tr("Save changes")}</button>{ok&&<span className="text-sm text-green-500">{tr("Saved")}</span>}</div></div>
-      <div className={card}><h2 className="text-xl font-bold">{tr("Language")}</h2>
-        <div className="flex gap-2">{[["en","English"],["ru","Русский"]].map(([k,l])=><button key={k} onClick={()=>save({...prefs,lang:k})} className={chip(prefs.lang===k)}>{l}</button>)}</div></div>
-      <div className={card}><h2 className="text-xl font-bold">{tr("Wallet")}</h2>
-        <div className="flex items-center justify-between gap-2"><span className="flex items-center gap-2 text-2xl font-bold"><Coins className="act"/>{me.coins||0}</span>
-          <button disabled={!ready} onClick={claim} className={B}>{ready?`${tr("Claim")} ${BONUS} ${tr("coins")}`:`${tr("Next bonus in ")}${Math.ceil(left/36e5)}${tr("h")}`}</button></div></div>
-      <div className={card}><h2 className="text-xl font-bold">{tr("Appearance")}</h2>
-        <div className="flex flex-wrap gap-2">{Object.keys(THEMES).map(k=><button key={k} onClick={()=>save({...prefs,theme:k})} className={chip(prefs.theme===k)}>{tr(TNAMES[k])}</button>)}</div>
-        <div className="flex gap-2">{Object.entries(ACC).map(([k,c])=><button key={k} title={k} onClick={()=>save({...prefs,acc:k})} style={{background:c}} className={`w-8 h-8 rounded-full ${prefs.acc===k?"ring-2 ring-offset-2 ring-slate-500":""}`}/>)}</div>
-        <div className="flex flex-wrap gap-2">{Object.keys(WALLS).map(k=><button key={k} onClick={()=>save({...prefs,wall:k})} className={chip(prefs.wall===k)}>{k==="none"?tr("No wallpaper"):tr(k)}</button>)}</div></div>
-      <button onClick={logout} className="flex items-center gap-1.5 text-red-500 rounded-full px-4 py-2 hv"><LogOut size={16}/>{tr("Log out")}</button>
-    </div>);
+        <div className="flex items-center gap-3 flex-wrap"><button onClick={sv} className={B}>{tr("Save changes")}</button>{ok&&<span className="text-sm text-green-500">{tr("Saved")}</span>}
+          {me.photo&&<button onClick={()=>updateDoc(ref,{photo:""})} className="text-sm mu ml-auto">{tr("Remove photo")}</button>}</div></div>}
+
+      {sec==="look"&&<div className={card}>
+        {lab("Theme")}
+        <div className="grid grid-cols-2 gap-3">{Object.keys(THEMES).map(k=>{const T=THEMES[k],on=prefs.theme===k;return(
+          <button key={k} onClick={()=>save({...prefs,theme:k})} className={tile(on)} style={ring(on)}>
+            <div className="h-16 rounded-xl mb-1.5 p-2 flex flex-col gap-1" style={{background:T["--bg"]}}>
+              <div className="h-2.5 w-2/3 rounded-full" style={{background:T["--panel"],border:"1px solid "+T["--line"]}}/><div className="h-2.5 w-1/2 rounded-full self-end acb"/><div className="h-2.5 w-3/5 rounded-full" style={{background:T["--input"]}}/></div>
+            {tr(TNAMES[k])}</button>)})}</div>
+        {lab("Accent color")}
+        <div className="flex gap-3">{Object.entries(ACC).map(([k,c])=><button key={k} title={k} onClick={()=>save({...prefs,acc:k})} style={{background:c}} className="w-10 h-10 rounded-full grid place-items-center">{prefs.acc===k&&<Check size={18} color="#fff"/>}</button>)}</div>
+        {lab("Wallpaper")}
+        <div className="grid grid-cols-4 gap-2">{Object.keys(WALLS).map(k=>{const on=prefs.wall===k;return(
+          <button key={k} onClick={()=>save({...prefs,wall:k})} className={tile(on)} style={ring(on)}>
+            <div className="h-12 rounded-xl mb-1.5" style={{backgroundColor:"var(--bg)",backgroundImage:WALLS[k],backgroundSize:WSIZE[k]||"auto",border:"1px solid var(--line)"}}/>{k==="none"?tr("No wallpaper"):tr(k)}</button>)})}</div></div>}
+
+      {sec==="lang"&&<div className={card}>{lab("Language")}
+        <div className="grid grid-cols-2 gap-3">{[["en","🇬🇧","English"],["ru","🇷🇺","Русский"]].map(([k,fl,nm])=>{const on=prefs.lang===k;return(
+          <button key={k} onClick={()=>save({...prefs,lang:k})} className={tile(on)+" py-5 text-base"} style={ring(on)}><div className="text-3xl mb-1">{fl}</div>{nm}</button>)})}</div></div>}
+
+      {sec==="wallet"&&<div className={card+" text-center"}>{lab("Balance")}
+        <div className="text-5xl font-bold flex items-center justify-center gap-2"><Coins className="act" size={34}/>{me.coins||0}</div>
+        <button disabled={!ready} onClick={claim} className={B}>{ready?`${tr("Claim")} ${BONUS} ${tr("coins")}`:`${tr("Next bonus in ")}${Math.ceil(left/36e5)}${tr("h")}`}</button></div>}
+
+      <button onClick={logout} className="w-full pn rounded-full py-3 text-red-500 font-semibold flex items-center justify-center gap-2"><LogOut size={16}/>{tr("Log out")}</button>
+    </div></div>);
 }
 
 function Admin({me,users,stats,ann,now}){
@@ -388,7 +465,7 @@ function Admin({me,users,stats,ann,now}){
 function Messenger({me,users,logout,prefs,save}){
   const admin=me.username===ADMIN_USERNAME;
   const [tab,setTab]=useState("chats"),[peer,setPeer]=useState(null),[q,setQ]=useState(""),[text,setText]=useState(""),[emo,setEmo]=useState(false);
-  const [prof,setProf]=useState(null),[giftTo,setGiftTo]=useState(null),[anim,setAnim]=useState(null),[dl,setDl]=useState(0);
+  const [prof,setProf]=useState(null),[giftTo,setGiftTo]=useState(null),[anim,setAnim]=useState(null),[dl,setDl]=useState(0),[hit,setHit]=useState(false);
   const seenIds=useRef(null),pc=useRef(me.coins||0);
   const [msgs,setMsgs]=useState([]),[ann,setAnn]=useState([]),[stats,setStats]=useState({}),[now,setNow]=useState(Date.now());
   const end=useRef(null);
@@ -479,7 +556,7 @@ function Messenger({me,users,logout,prefs,save}){
         </div>
       </aside>
 
-      <main className={`${showMain?"flex":"hidden md:flex"} flex-1 flex-col min-w-0 pn md:m-3 md:rounded-[28px] overflow-hidden`}>
+      <main className={`${showMain?"flex":"hidden md:flex"} ${hit?"ghit":""} flex-1 flex-col min-w-0 pn md:m-3 md:rounded-[28px] overflow-hidden`}>
         {pin&&<div className="border-b bl px-4 py-2.5 flex items-center gap-2 text-sm" style={{borderLeft:"3px solid var(--acc)"}}>
           <Megaphone size={16} className="shrink-0 act"/><span className="min-w-0 flex-1"><b>{tr("Announcement:")}</b> {pin.text}</span>
           {admin&&<button onClick={()=>deleteDoc(doc(db,"announcements",pin.id))}><X size={16}/></button>}</div>}
@@ -498,7 +575,7 @@ function Messenger({me,users,logout,prefs,save}){
             {thread.length===0&&<p className="text-center text-sm mu mt-6">{tr("No messages yet. Say hi!")}</p>}
             {thread.map(m=>{const mine=m.from===me.uid,g=gf(m.gift);return m.type==="gift"?(
               <div key={m.id} className="flex justify-center py-1">
-                <div className="pn tx rounded-xl p-4 text-center max-w-[80%] border-2" style={{borderColor:RC[g.r]}}>
+                <div className={`pn tx rounded-xl p-4 text-center max-w-[80%] border-2 ${Date.now()-m.ts<4000?"gland":""}`} style={{borderColor:RC[g.r]}}>
                   <div className="flex justify-center"><GImg g={g} size={72}/></div>
                   <div className="font-bold">{mine?tr("You sent"):nameOf(users,m.from)+" "+tr("sent you")} {g.n}</div>
                   <div className="text-[10px] uppercase" style={{color:RC[g.r],letterSpacing:".2em"}}>{g.r}{g.max?` · ${tr("limited")} #${m.no}/${g.max}`:""}</div>
@@ -506,7 +583,7 @@ function Messenger({me,users,logout,prefs,save}){
                   <div className="text-[11px] opacity-80 mt-1">{time(m.ts)}</div>
                 </div></div>):(
               <div key={m.id} className={`flex ${mine?"justify-end":"justify-start"}`}>
-                <div className={`max-w-[80%] px-3.5 py-2 rounded-2xl ${mine?"acb":"tx border"}`} style={mine?null:{background:"var(--glass)",borderColor:"var(--gb)"}}>
+                <div className={`max-w-[80%] px-3.5 py-2 rounded-2xl ${mine?"out":"tx inb"}`}>
                   <span className="whitespace-pre-wrap break-words">{m.text}</span>
                   <span className={`ml-2 float-right mt-1.5 text-[11px] inline-flex items-center gap-0.5 ${mine?"text-white/80":"mu"}`}>{time(m.ts)}{mine&&(m.read?<CheckCheck size={14}/>:<Check size={14}/>)}</span>
                 </div></div>)})}
@@ -529,7 +606,7 @@ function Messenger({me,users,logout,prefs,save}){
 
       {profU&&<Profile u={profU} me={me} now={now} onClose={()=>setProf(null)} onChat={openChat} onGift={id=>{setProf(null);setGiftTo(id)}}/>}
       {giftU&&<GiftPicker to={giftU} me={me} free={false} onSent={(g,no)=>setAnim({g,no})} onClose={()=>setGiftTo(null)}/>}
-      {anim&&<GiftAnim a={anim} onDone={()=>setAnim(null)}/>}
+      {anim&&<GiftAnim a={anim} onDone={()=>setAnim(null)} onHit={()=>{setHit(true);setTimeout(()=>setHit(false),500)}}/>}
     </div>);
 }
 const nameOf=(users,id)=>users.find(u=>u.uid===id)?.name||"Someone";
