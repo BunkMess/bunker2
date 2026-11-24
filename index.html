@@ -18,12 +18,13 @@
 <style>
 html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#2a2d33}
-.rounded-xl,.rounded-2xl,.rounded-3xl,.rounded-lg,.rounded-md{border-radius:3px!important}
-.shadow,.shadow-sm,.shadow-lg,.shadow-2xl{box-shadow:none!important}
-.pn.rounded-2xl,.pn.rounded-3xl{border:1px solid var(--line)}
-.pn{background:var(--panel)}.bgm{background:var(--bg)}.tx{color:var(--text)}.mu{color:var(--muted)}.bl{border-color:var(--line)}
+.rounded-xl{border-radius:18px!important}.rounded-2xl{border-radius:24px!important}.rounded-3xl{border-radius:32px!important}.rounded-lg,.rounded-md{border-radius:14px!important}
+.pn{background:var(--glass);backdrop-filter:blur(24px) saturate(170%);-webkit-backdrop-filter:blur(24px) saturate(170%);border:1px solid var(--gb);box-shadow:0 8px 32px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.22)}
+.solid{background:var(--panel)!important}.dockon{background:color-mix(in srgb,var(--acc) 24%,transparent);color:var(--acc)}
+.bgm{background:radial-gradient(900px 600px at 0% 0%,color-mix(in srgb,var(--acc) 38%,transparent),transparent 70%),radial-gradient(800px 600px at 100% 100%,rgba(168,85,247,.28),transparent 70%),var(--bg)}.tx{color:var(--text)}.mu{color:var(--muted)}.bl{border-color:var(--line)}
 .acb{background:var(--acc);color:#fff}.act{color:var(--acc)}.hv:hover{background:var(--hover)}.sel{background:var(--hover);color:var(--text)}
-.inp{background:var(--input);color:var(--text);border-radius:12px;padding:10px 14px;width:100%;outline:none}
+.inp{background:var(--input);color:var(--text);border-radius:18px;padding:10px 14px;width:100%;outline:none}
+.pill{border-radius:999px!important}
 @keyframes gpop{0%{transform:scale(.6);opacity:0}25%{transform:scale(1.1);opacity:1}40%{transform:scale(1)}85%{opacity:1}100%{transform:scale(1);opacity:0}}
 @keyframes gfly{0%{transform:translate(0,0) scale(.3) rotate(0);opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1.2) rotate(var(--r));opacity:0}}
 @keyframes gfade{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
@@ -92,8 +93,14 @@ const TNAMES={light:"Light (VK Clean)",dark:"Dark (Strict)",midnight:"Midnight B
 const ACC={Blue:"#2787f5",Purple:"#8b5cf6",Emerald:"#10b981",Crimson:"#e11d48",Amber:"#d97706"};
 const WALLS={none:"none",dots:"radial-gradient(rgba(128,128,128,.3) 1.5px,transparent 1.5px)",grid:"linear-gradient(rgba(128,128,128,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(128,128,128,.15) 1px,transparent 1px)",waves:"repeating-linear-gradient(45deg,rgba(128,128,128,.14) 0 2px,transparent 2px 14px)"};
 const WSIZE={dots:"22px 22px",grid:"24px 24px"};
-const loadPrefs=()=>{try{return{theme:"dark",acc:"Blue",wall:"none",...JSON.parse(localStorage.getItem(PK))}}catch{return{theme:"dark",acc:"Blue",wall:"none"}}};
-const cssVars=p=>({...(THEMES[p.theme]||THEMES.light),"--acc":ACC[p.acc]||ACC.Blue});
+const DL=(navigator.language||"").startsWith("ru")?"ru":"en";
+const loadPrefs=()=>{try{return{theme:"dark",acc:"Blue",wall:"none",lang:DL,...JSON.parse(localStorage.getItem(PK))}}catch{return{theme:"dark",acc:"Blue",wall:"none",lang:DL}}};
+const L={ru:{"Account settings": "Настройки аккаунта", "Chats": "Чаты", "Users": "Люди", "Settings": "Настройки", "Admin": "Админ", "Search": "Поиск", "No users found.": "Никого не найдено.", "No chats yet. Open Users to start one.": "Чатов пока нет. Откройте «Люди», чтобы начать.", "Select a chat to start messaging": "Выберите чат, чтобы начать общение", "online": "в сети", "last seen ": "был(а) ", "No messages yet. Say hi!": "Сообщений пока нет. Поздоровайтесь!", "Write a message…": "Напишите сообщение…", "You are banned from sending messages.": "Вам запрещено отправлять сообщения.", "You": "Вы", "You sent": "Вы отправили", "sent you": "отправил(а) вам", "Announcement:": "Объявление:", "limited": "лимит", "Upload photo": "Загрузить фото", "Remove photo": "Удалить фото", "Display name": "Имя", "Bio": "О себе", "Save changes": "Сохранить", "Saved": "Сохранено", "Wallet": "Кошелёк", "Claim": "Получить", "coins": "монет", "Next bonus in ": "Следующий бонус через ", "h": "ч", "Appearance": "Оформление", "Language": "Язык", "Log out": "Выйти", "Light (VK Clean)": "Светлая", "Dark (Strict)": "Тёмная", "Midnight Blue": "Полночный синий", "AMOLED Black": "AMOLED чёрная", "No wallpaper": "Без обоев", "dots": "Точки", "grid": "Сетка", "waves": "Волны", "Username": "Имя пользователя", "No bio yet": "Пока пусто", "Registered": "Регистрация", "Gifts showcase": "Витрина подарков", "No gifts yet.": "Подарков пока нет.", "Send message": "Написать", "Send gift": "Подарить", "Gift for": "Подарок для", "Gifts": "Подарки", "NFT · Limited": "NFT · Лимит", "Add a message (optional)": "Добавьте сообщение (необязательно)", "Balance after:": "Баланс после:", "Sold out": "Распродано", "Not enough coins": "Не хватает монет", "Send": "Отправить", "for": "за", "left": "осталось", "Sign in with your phone number": "Вход по номеру телефона", "Send SMS code": "Отправить SMS-код", "Sending…": "Отправка…", "Admin quick login": "Быстрый вход админа", "Enter the 6-digit code sent to": "Введите 6-значный код, отправленный на", "Verify and continue": "Подтвердить", "Checking…": "Проверка…", "Use a different number": "Другой номер", "Set up your profile": "Настройте профиль", "Bio (optional)": "О себе (необязательно)", "Create profile": "Создать профиль", "Cancel and sign out": "Отмена и выход"}};
+let LANG="en";
+const tr=k=>(L[LANG]&&L[LANG][k])||k;
+const resize=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const S=192,c=document.createElement("canvas");c.width=c.height=S;const m=Math.min(im.width,im.height);c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);res(c.toDataURL("image/jpeg",.82))};im.onerror=()=>rej(new Error("Not an image"));im.src=r.result};r.onerror=rej;r.readAsDataURL(file)});
+
+const cssVars=p=>({...(THEMES[p.theme]||THEMES.light),"--acc":ACC[p.acc]||ACC.Blue,"--glass":p.theme==="light"?"rgba(255,255,255,.62)":"rgba(255,255,255,.07)","--gb":p.theme==="light"?"rgba(255,255,255,.85)":"rgba(255,255,255,.14)"});
 
 const time=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
 const seen=t=>new Date(t).toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
@@ -132,7 +139,7 @@ async function giveGift(from,to,id,text,free){
 
 const Avatar=({u,size=44,dot})=>(
   <div className="relative shrink-0" style={{width:size,height:size}}>
-    <div className="w-full h-full rounded-md grid place-items-center" style={{background:u.color,fontSize:size*0.5}}>{u.emoji}</div>
+    {u.photo?<img src={u.photo} alt="" draggable={false} className="w-full h-full rounded-full object-cover"/>:<div className="w-full h-full rounded-full grid place-items-center" style={{background:u.color,fontSize:size*0.5}}>{u.emoji}</div>}
     {dot!==undefined&&<span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[var(--panel)] ${dot?"bg-green-500":"bg-slate-400"}`}/>}
   </div>);
 const Name=({u})=>(
@@ -145,7 +152,7 @@ const Picker=({f,set})=>(
   </div>);
 const Modal=({onClose,children})=>(
   <div className="fixed inset-0 z-50 bg-black/60 grid place-items-center p-4" onClick={onClose}>
-    <div className="pn tx rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e=>e.stopPropagation()}>{children}</div>
+    <div className="pn solid tx rounded-3xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e=>e.stopPropagation()}>{children}</div>
   </div>);
 const Stat=({l,v})=>(<div className="pn rounded-2xl p-4 shadow-sm"><div className="text-3xl font-bold act">{v}</div><div className="text-sm mu">{l}</div></div>);
 
@@ -168,17 +175,17 @@ function Login(){
   return(
     <div className="min-h-screen grid place-items-center p-4">
       <div className="pn rounded-3xl shadow-lg w-full max-w-sm overflow-hidden">
-        <div className="acb p-6 text-center"><Send className="mx-auto mb-2" size={36}/><h1 className="text-2xl font-bold tracking-wide">BunkMESS</h1><p className="text-white/80 text-sm">Sign in with your phone number</p></div>
+        <div className="acb p-6 text-center"><Send className="mx-auto mb-2" size={36}/><h1 className="text-2xl font-bold tracking-wide">BunkMESS</h1><p className="text-white/80 text-sm">{tr("Sign in with your phone number")}</p></div>
         <div className="p-6 space-y-3">
           {!conf?<>
             <input className="inp" type="tel" placeholder="+1 415 555 0123" value={ph} onChange={e=>setPh(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/>
-            <button disabled={busy} onClick={send} className={B+" w-full"}>{busy?"Sending…":"Send SMS code"}</button>
-            <button onClick={()=>setPh(ADMIN_PHONE)} className="w-full text-sm act">Admin quick login</button>
+            <button disabled={busy} onClick={send} className={B+" w-full"}>{busy?tr("Sending…"):tr("Send SMS code")}</button>
+            <button onClick={()=>setPh(ADMIN_PHONE)} className="w-full text-sm act">{tr("Admin quick login")}</button>
           </>:<form onSubmit={verify} className="space-y-3">
-            <p className="text-sm mu">Enter the 6-digit code sent to {clean}</p>
+            <p className="text-sm mu">{tr("Enter the 6-digit code sent to")} {clean}</p>
             <input className="inp text-center tracking-widest text-lg" inputMode="numeric" maxLength={6} placeholder="••••••" value={code} onChange={e=>setCode(e.target.value)} autoFocus/>
-            <button disabled={busy||code.length<6} className={B+" w-full"}>{busy?"Checking…":"Verify and continue"}</button>
-            <button type="button" onClick={()=>{setConf(null);setCode("")}} className="w-full text-sm mu">Use a different number</button>
+            <button disabled={busy||code.length<6} className={B+" w-full"}>{busy?tr("Checking…"):tr("Verify and continue")}</button>
+            <button type="button" onClick={()=>{setConf(null);setCode("")}} className="w-full text-sm mu">{tr("Use a different number")}</button>
           </form>}
           {err&&<p className="text-sm text-red-500">{err}</p>}
           <div id="rc"/>
@@ -204,14 +211,14 @@ function Onboard({au,users,logout}){
   };
   return(
     <div className="min-h-screen grid place-items-center p-4"><div className="pn rounded-3xl shadow-lg w-full max-w-sm p-6 space-y-3">
-      <h1 className="text-xl font-bold">Set up your profile</h1>
+      <h1 className="text-xl font-bold">{tr("Set up your profile")}</h1>
       <input className="inp" placeholder="@username" value={f.u} disabled={isAdm} onChange={e=>set({u:e.target.value})} autoCapitalize="none"/>
-      <input className="inp" placeholder="Display name" value={f.name} onChange={e=>set({name:e.target.value})} maxLength={30}/>
-      <textarea className="inp resize-none" rows={2} placeholder="Bio (optional)" value={f.bio} onChange={e=>set({bio:e.target.value})} maxLength={140}/>
+      <input className="inp" placeholder={tr("Display name")} value={f.name} onChange={e=>set({name:e.target.value})} maxLength={30}/>
+      <textarea className="inp resize-none" rows={2} placeholder={tr("Bio (optional)")} value={f.bio} onChange={e=>set({bio:e.target.value})} maxLength={140}/>
       <Picker f={f} set={set}/>
       {err&&<p className="text-sm text-red-500">{err}</p>}
-      <button disabled={busy} onClick={go} className={B+" w-full"}>Create profile</button>
-      <button onClick={logout} className="w-full text-sm mu">Cancel and sign out</button>
+      <button disabled={busy} onClick={go} className={B+" w-full"}>{tr("Create profile")}</button>
+      <button onClick={logout} className="w-full text-sm mu">{tr("Cancel and sign out")}</button>
     </div></div>);
 }
 
@@ -221,21 +228,21 @@ function Profile({u,me,now,onClose,onChat,onGift}){
   return(
     <Modal onClose={onClose}>
       <div className="p-6 text-center">
-        <div className="mx-auto w-24 h-24 rounded-md grid place-items-center text-5xl" style={{background:u.color}}>{u.emoji}</div>
+        <div className="flex justify-center"><Avatar u={u} size={96}/></div>
         <div className="text-xl mt-3"><Name u={u}/></div>
-        <div className={`text-sm ${online(u,now)?"act":"mu"}`}>{online(u,now)?"online":"last seen "+seen(u.lastSeen||u.createdAt)}</div>
+        <div className={`text-sm ${online(u,now)?"act":"mu"}`}>{online(u,now)?tr("online"):tr("last seen ")+seen(u.lastSeen||u.createdAt)}</div>
       </div>
       <div className="px-6">
-        {row("Username","@"+u.username)}{row("Bio",u.bio||"No bio yet")}
-        {row("Registered",new Date(u.createdAt).toLocaleDateString([],{year:"numeric",month:"long",day:"numeric"}))}
-        <div className="py-3"><div className="font-semibold text-sm mb-2">Gifts showcase ({gs.length})</div>
-          {!gs.length?<p className="text-sm mu">No gifts yet.</p>:<div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">{gs.map((x,i)=>{const g=gf(x.g);return(
+        {row(tr("Username"),"@"+u.username)}{row(tr("Bio"),u.bio||tr("No bio yet"))}
+        {row(tr("Registered"),new Date(u.createdAt).toLocaleDateString([],{year:"numeric",month:"long",day:"numeric"}))}
+        <div className="py-3"><div className="font-semibold text-sm mb-2">{tr("Gifts showcase")} ({gs.length})</div>
+          {!gs.length?<p className="text-sm mu">{tr("No gifts yet.")}</p>:<div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">{gs.map((x,i)=>{const g=gf(x.g);return(
             <div key={i} title={`${g.n} from ${x.n}`} className="rounded-xl p-1.5 text-center border flex flex-col items-center" style={{borderColor:RC[g.r]}}><GImg g={g} size={40}/>{g.max&&<div className="text-[10px] mu">#{x.no}</div>}</div>)})}</div>}
         </div>
       </div>
       <div className="p-6 pt-2 flex gap-2">
-        <button onClick={()=>onChat(idOf(u))} className={B+" flex-1"}>Send message</button>
-        {u.uid!==me.uid&&<button onClick={()=>onGift(idOf(u))} className="sel rounded-xl px-4 py-2 font-semibold flex-1 flex items-center justify-center gap-1.5"><Gift size={16}/>Send gift</button>}
+        <button onClick={()=>onChat(idOf(u))} className={B+" flex-1"}>{tr("Send message")}</button>
+        {u.uid!==me.uid&&<button onClick={()=>onGift(idOf(u))} className="sel rounded-xl px-4 py-2 font-semibold flex-1 flex items-center justify-center gap-1.5"><Gift size={16}/>{tr("Send gift")}</button>}
       </div>
     </Modal>);
 }
@@ -247,17 +254,17 @@ function GiftPicker({to,me,free,onClose,onSent}){
   const go=async()=>{setBusy(true);try{const no=await giveGift(me,idOf(to),gi,msg.trim(),free);onSent&&onSent(g,no);onClose()}catch(e){setErr(e.message);setBusy(false)}};
   return(
     <Modal onClose={onClose}><div className="p-5 space-y-3">
-      <div className="flex justify-between items-center"><h3 className="font-bold text-lg">Gift for {to.name}</h3><span className="text-sm mu flex items-center gap-1"><Coins size={15}/>{me.coins||0}</span></div>
-      <div className="flex gap-2">{[["gifts","Gifts"],["nft","NFT · Limited"]].map(([k,l])=><button key={k} onClick={()=>{setTab(k);setGi((k==="gifts"?REG:NFT)[0].id)}} className={`rounded-xl px-3 py-1.5 text-sm ${tab===k?"acb":"sel"}`}>{l}</button>)}</div>
+      <div className="flex justify-between items-center"><h3 className="font-bold text-lg">{tr("Gift for")} {to.name}</h3><span className="text-sm mu flex items-center gap-1"><Coins size={15}/>{me.coins||0}</span></div>
+      <div className="flex gap-2">{[["gifts",tr("Gifts")],["nft",tr("NFT · Limited")]].map(([k,l])=><button key={k} onClick={()=>{setTab(k);setGi((k==="gifts"?REG:NFT)[0].id)}} className={`rounded-xl px-3 py-1.5 text-sm ${tab===k?"acb":"sel"}`}>{l}</button>)}</div>
       <div className="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto">{(tab==="gifts"?REG:NFT).map(x=>{const l=x.max?x.max-(mint[x.id]||0):null;return(
         <button key={x.id} disabled={l===0} onClick={()=>setGi(x.id)} className={`sel rounded-xl py-2 border disabled:opacity-40 flex flex-col items-center ${gi===x.id?"ring-2 ring-[var(--acc)]":""}`} style={{borderColor:RC[x.r]}}>
           <GImg g={x} size={44}/><div className="text-xs mt-1">{x.n}</div>
           <div className="text-[10px] uppercase" style={{color:RC[x.r]}}>{x.r}</div>
-          <div className="text-[11px] mu">{l===0?"Sold out":(l!==null?`${l}/${x.max} left · `:"")+(free?"Free":x.c)}</div></button>)})}</div>
-      <input className="inp" placeholder="Add a message (optional)" maxLength={100} value={msg} onChange={e=>setMsg(e.target.value)}/>
+          <div className="text-[11px] mu">{l===0?tr("Sold out"):(l!==null?`${l}/${x.max} ${tr("left")} · `:"")+(free?"Free":x.c)}</div></button>)})}</div>
+      <input className="inp" placeholder={tr("Add a message (optional)")} maxLength={100} value={msg} onChange={e=>setMsg(e.target.value)}/>
       {err&&<p className="text-sm text-red-500">{err}</p>}
-      <p className="text-xs mu">Balance after: {(me.coins||0)-(free?0:g.c)} coins</p>
-      <button disabled={busy||!can} onClick={go} className={B+" w-full"}>{left<1?"Sold out":can?`Send ${g.n}${free?"":" for "+g.c+" coins"}`:"Not enough coins"}</button>
+      <p className="text-xs mu">{tr("Balance after:")} {(me.coins||0)-(free?0:g.c)} {tr("coins")}</p>
+      <button disabled={busy||!can} onClick={go} className={B+" w-full"}>{left<1?tr("Sold out"):can?`${tr("Send")} ${g.n}${free?"":" "+tr("for")+" "+g.c+" "+tr("coins")}`:tr("Not enough coins")}</button>
     </div></Modal>);
 }
 
@@ -276,29 +283,39 @@ function GiftAnim({a,onDone}){
 }
 
 function Prefs({me,logout,prefs,save}){
-  const [f,setF]=useState({name:me.name,bio:me.bio||"",emoji:me.emoji,color:me.color}),[ok,setOk]=useState(false);
+  const [f,setF]=useState({name:me.name,bio:me.bio||"",emoji:me.emoji,color:me.color}),[ok,setOk]=useState(false),[perr,setPerr]=useState("");
+  const fileRef=useRef(null);
   const set=p=>{setOk(false);setF(o=>({...o,...p}))};
   const left=864e5-(Date.now()-(me.lastBonus||0)),ready=left<=0;
-  const sv=async()=>{if(!f.name.trim())return;await updateDoc(doc(db,"users",me.uid),{name:f.name.trim(),bio:f.bio.trim(),emoji:f.emoji,color:f.color});setOk(true)};
-  const claim=()=>updateDoc(doc(db,"users",me.uid),{coins:increment(BONUS),lastBonus:Date.now()});
-  const chip=on=>`rounded-xl px-3 py-1.5 text-sm ${on?"acb":"sel"}`;
-  const card="pn rounded-2xl shadow-sm p-5 max-w-md space-y-3";
+  const ref=doc(db,"users",me.uid);
+  const sv=async()=>{if(!f.name.trim())return;await updateDoc(ref,{name:f.name.trim(),bio:f.bio.trim(),emoji:f.emoji,color:f.color});setOk(true)};
+  const claim=()=>updateDoc(ref,{coins:increment(BONUS),lastBonus:Date.now()});
+  const pick=async e=>{const file=e.target.files[0];e.target.value="";if(!file)return;setPerr("");try{await updateDoc(ref,{photo:await resize(file)})}catch(x){setPerr(x.message||"Could not load image")}};
+  const chip=on=>`rounded-full px-3.5 py-1.5 text-sm ${on?"acb":"sel"}`;
+  const card="pn rounded-3xl p-5 max-w-md space-y-3";
   return(
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 tx">
-      <div className={card}><h2 className="text-xl font-bold">Profile</h2>
-        <div className="flex items-center gap-3"><Avatar u={{...me,...f}} size={56}/><div><div className="font-semibold">{f.name}</div><div className="text-sm mu">@{me.username}</div></div></div>
-        <input className="inp" value={f.name} onChange={e=>set({name:e.target.value})} maxLength={30} placeholder="Display name"/>
-        <textarea className="inp resize-none" rows={2} value={f.bio} onChange={e=>set({bio:e.target.value})} maxLength={140} placeholder="Bio"/>
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 space-y-4 tx">
+      <div className={card}><h2 className="text-xl font-bold">{tr("Account settings")}</h2>
+        <div className="flex items-center gap-4"><Avatar u={{...me,...f}} size={76}/>
+          <div className="space-y-1.5"><input ref={fileRef} type="file" accept="image/*" hidden onChange={pick}/>
+            <button onClick={()=>fileRef.current.click()} className={B}>{tr("Upload photo")}</button>
+            {me.photo&&<button onClick={()=>updateDoc(ref,{photo:""})} className="block text-sm mu">{tr("Remove photo")}</button>}</div></div>
+        {perr&&<p className="text-sm text-red-500">{perr}</p>}
+        <div className="text-sm mu">@{me.username}</div>
+        <input className="inp" value={f.name} onChange={e=>set({name:e.target.value})} maxLength={30} placeholder={tr("Display name")}/>
+        <textarea className="inp resize-none" rows={2} value={f.bio} onChange={e=>set({bio:e.target.value})} maxLength={140} placeholder={tr("Bio")}/>
         <Picker f={f} set={set}/>
-        <div className="flex items-center gap-3"><button onClick={sv} className={B}>Save changes</button>{ok&&<span className="text-sm text-green-500">Saved</span>}</div></div>
-      <div className={card}><h2 className="text-xl font-bold">Wallet</h2>
-        <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-2xl font-bold"><Coins className="act"/>{me.coins}</span>
-          <button disabled={!ready} onClick={claim} className={B}>{ready?`Claim ${BONUS} coins`:`Next bonus in ${Math.ceil(left/36e5)}h`}</button></div></div>
-      <div className={card}><h2 className="text-xl font-bold">Appearance</h2>
-        <div className="flex flex-wrap gap-2">{Object.keys(THEMES).map(k=><button key={k} onClick={()=>save({...prefs,theme:k})} className={chip(prefs.theme===k)}>{TNAMES[k]}</button>)}</div>
+        <div className="flex items-center gap-3"><button onClick={sv} className={B}>{tr("Save changes")}</button>{ok&&<span className="text-sm text-green-500">{tr("Saved")}</span>}</div></div>
+      <div className={card}><h2 className="text-xl font-bold">{tr("Language")}</h2>
+        <div className="flex gap-2">{[["en","English"],["ru","Русский"]].map(([k,l])=><button key={k} onClick={()=>save({...prefs,lang:k})} className={chip(prefs.lang===k)}>{l}</button>)}</div></div>
+      <div className={card}><h2 className="text-xl font-bold">{tr("Wallet")}</h2>
+        <div className="flex items-center justify-between gap-2"><span className="flex items-center gap-2 text-2xl font-bold"><Coins className="act"/>{me.coins||0}</span>
+          <button disabled={!ready} onClick={claim} className={B}>{ready?`${tr("Claim")} ${BONUS} ${tr("coins")}`:`${tr("Next bonus in ")}${Math.ceil(left/36e5)}${tr("h")}`}</button></div></div>
+      <div className={card}><h2 className="text-xl font-bold">{tr("Appearance")}</h2>
+        <div className="flex flex-wrap gap-2">{Object.keys(THEMES).map(k=><button key={k} onClick={()=>save({...prefs,theme:k})} className={chip(prefs.theme===k)}>{tr(TNAMES[k])}</button>)}</div>
         <div className="flex gap-2">{Object.entries(ACC).map(([k,c])=><button key={k} title={k} onClick={()=>save({...prefs,acc:k})} style={{background:c}} className={`w-8 h-8 rounded-full ${prefs.acc===k?"ring-2 ring-offset-2 ring-slate-500":""}`}/>)}</div>
-        <div className="flex flex-wrap gap-2">{Object.keys(WALLS).map(k=><button key={k} onClick={()=>save({...prefs,wall:k})} className={chip(prefs.wall===k)+" capitalize"}>{k==="none"?"No wallpaper":k}</button>)}</div></div>
-      <button onClick={logout} className="flex items-center gap-1.5 text-red-500 rounded-xl px-4 py-2 hv"><LogOut size={16}/>Log out</button>
+        <div className="flex flex-wrap gap-2">{Object.keys(WALLS).map(k=><button key={k} onClick={()=>save({...prefs,wall:k})} className={chip(prefs.wall===k)}>{k==="none"?tr("No wallpaper"):tr(k)}</button>)}</div></div>
+      <button onClick={logout} className="flex items-center gap-1.5 text-red-500 rounded-full px-4 py-2 hv"><LogOut size={16}/>{tr("Log out")}</button>
     </div>);
 }
 
@@ -321,7 +338,7 @@ function Admin({me,users,stats,ann,now}){
   const card="pn rounded-2xl p-4 shadow-sm space-y-2";
   const btn=(on,c)=>`w-9 h-9 grid place-items-center rounded-lg ${on?c:"sel"}`;
   return(
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 tx">
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 space-y-4 tx">
       <h2 className="text-xl font-bold flex items-center gap-2"><Shield className="act"/>Admin Panel</h2>
       <div className="flex flex-wrap gap-2">{Object.entries(tabs).map(([k,l])=><button key={k} onClick={()=>setT(k)} className={`rounded-xl px-3 py-1.5 text-sm font-semibold ${t===k?"acb":"pn"}`}>{l}</button>)}</div>
 
@@ -427,35 +444,34 @@ function Messenger({me,users,logout,prefs,save}){
   const showMain=view!=="chat"||!!peerU;
   const pin=ann[ann.length-1];
   const nav=(id,Icon,label,badge)=>(
-    <button title={label} onClick={()=>setTab(id)} className={`relative w-11 h-11 rounded-xl grid place-items-center transition ${tab===id?"acb":"text-slate-400 hover:bg-white/10 hover:text-white"}`}>
-      <Icon size={22}/>{badge>0&&<span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] grid place-items-center">{badge}</span>}
+    <button key={id} onClick={()=>setTab(id)} className={`relative flex-1 flex flex-col items-center gap-0.5 py-2 rounded-full transition ${tab===id?"dockon":"mu"}`}>
+      <Icon size={22}/><span className="text-[10px] font-medium">{label}</span>
+      {badge>0&&<span className="absolute top-1 right-[20%] min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] grid place-items-center">{badge}</span>}
     </button>);
+  const inChat=view==="chat"&&!!peerU;
+  const seenTxt=u=>online(u,now)?tr("online"):tr("last seen ")+seen(u.lastSeen||u.createdAt);
 
   return(
-    <div className="flex bgm tx overflow-hidden" style={{height:"100dvh"}}>
-      <nav className="w-14 md:w-16 flex flex-col items-center py-3 gap-2 shrink-0" style={{background:"var(--rail)"}}>
-        <button className="mb-2" title="My profile" onClick={()=>setProf(me.uid)}><Avatar u={me} size={38}/></button>
-        {nav("chats",MessageCircle,"Chats",unreadAll)}
-        {nav("users",Users,"All users")}
-        {nav("settings",Settings,"Settings")}
-        {admin&&nav("admin",Shield,"Admin panel")}
-      </nav>
-
-      <aside className={`${showMain?"hidden md:flex":"flex"} w-full md:w-80 pn border-r bl flex-col shrink-0`}>
-        <div className="p-3 space-y-2">
-          <div className="flex items-center justify-between px-1"><h2 className="text-lg font-bold">{tab==="users"?"All users":"Chats"}</h2><span className="relative text-sm mu flex items-center gap-1"><Coins size={14}/>{me.coins||0}{dl!==0&&<span className={`gdelta ${dl<0?"text-red-500":"text-green-500"}`}>{dl>0?"+":""}{dl}</span>}</span></div>
-          <div className="relative"><Search size={16} className="absolute left-3 top-3 mu"/>
-            <input className="inp pl-9" placeholder="Search" value={q} onChange={e=>setQ(e.target.value)}/></div>
+    <div className="flex tx overflow-hidden" style={{height:"100dvh"}}>
+      <aside className={`${showMain?"hidden md:flex":"flex"} w-full md:w-80 pn flex-col shrink-0 md:m-3 md:mr-0 md:rounded-[28px] overflow-hidden`}>
+        <div className="p-3 space-y-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={()=>setTab("settings")}>
+            <Avatar u={me} size={44}/>
+            <div className="min-w-0 flex-1"><Name u={me}/><div className="text-xs mu truncate">{tr("Account settings")}</div></div>
+            <span className="relative text-sm mu flex items-center gap-1 shrink-0"><Coins size={14}/>{me.coins||0}{dl!==0&&<span className={`gdelta ${dl<0?"text-red-500":"text-green-500"}`}>{dl>0?"+":""}{dl}</span>}</span>
+          </div>
+          <div className="relative"><Search size={16} className="absolute left-4 top-3.5 mu"/>
+            <input className="inp pill pl-10" placeholder={tr("Search")} value={q} onChange={e=>setQ(e.target.value)}/></div>
         </div>
-        <div className="flex-1 overflow-y-auto">
-          {list.length===0&&<p className="text-center text-sm mu p-6">{tab==="users"?"No users found.":"No chats yet. Open All users to start one."}</p>}
+        <div className="flex-1 overflow-y-auto pb-28">
+          {list.length===0&&<p className="text-center text-sm mu p-6">{tab==="users"?tr("No users found."):tr("No chats yet. Open Users to start one.")}</p>}
           {list.map(u=>{const c=convos[u.uid];return(
-            <div key={u.uid} onClick={()=>tab==="users"?setProf(idOf(u)):openChat(idOf(u))} className={`w-full flex items-center gap-3 px-3 py-2.5 cursor-pointer hv ${peer===u.uid?"sel":""}`}>
+            <div key={u.uid} onClick={()=>tab==="users"?setProf(idOf(u)):openChat(idOf(u))} className={`mx-2 flex items-center gap-3 px-3 py-2.5 rounded-2xl cursor-pointer hv ${peer===u.uid?"sel":""}`}>
               <span onClick={e=>{e.stopPropagation();setProf(idOf(u))}}><Avatar u={u} dot={online(u,now)}/></span>
               <div className="min-w-0 flex-1">
                 <div className="flex justify-between gap-2"><Name u={u}/>{c&&<span className="text-xs mu shrink-0">{time(c.last.ts)}</span>}</div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-sm mu truncate">{c?(c.last.from===me.uid?"You: ":"")+prev(c.last):"@"+u.username}</span>
+                  <span className="text-sm mu truncate">{c?(c.last.from===me.uid?tr("You")+": ":"")+prev(c.last):"@"+u.username}</span>
                   {c&&c.unread>0&&<span className="min-w-5 h-5 px-1.5 rounded-full acb text-xs grid place-items-center shrink-0">{c.unread}</span>}
                 </div>
               </div>
@@ -463,49 +479,53 @@ function Messenger({me,users,logout,prefs,save}){
         </div>
       </aside>
 
-      <main className={`${showMain?"flex":"hidden md:flex"} flex-1 flex-col min-w-0`}>
-        {pin&&<div className="pn tx border-b bl px-4 py-2 flex items-center gap-2 text-sm" style={{borderLeft:"3px solid var(--acc)"}}>
-          <Megaphone size={16} className="shrink-0"/><span className="min-w-0 flex-1"><b>Announcement:</b> {pin.text}</span>
-          {admin&&<button title="Remove announcement" onClick={()=>deleteDoc(doc(db,"announcements",pin.id))}><X size={16}/></button>}</div>}
+      <main className={`${showMain?"flex":"hidden md:flex"} flex-1 flex-col min-w-0 pn md:m-3 md:rounded-[28px] overflow-hidden`}>
+        {pin&&<div className="border-b bl px-4 py-2.5 flex items-center gap-2 text-sm" style={{borderLeft:"3px solid var(--acc)"}}>
+          <Megaphone size={16} className="shrink-0 act"/><span className="min-w-0 flex-1"><b>{tr("Announcement:")}</b> {pin.text}</span>
+          {admin&&<button onClick={()=>deleteDoc(doc(db,"announcements",pin.id))}><X size={16}/></button>}</div>}
 
         {view==="admin"?<Admin me={me} users={users} stats={stats} ann={ann} now={now}/>:view==="settings"?<Prefs me={me} logout={logout} prefs={prefs} save={save}/>:!peerU?(
-          <div className="flex-1 grid place-items-center mu" style={{background:"var(--chat)"}}><span className="pn rounded-full px-4 py-1.5 text-sm">Select a chat to start messaging</span></div>
+          <div className="flex-1 grid place-items-center mu"><span className="pn rounded-full px-5 py-2 text-sm">{tr("Select a chat to start messaging")}</span></div>
         ):(<>
-          <header className="pn border-b bl px-3 py-2.5 flex items-center gap-3">
+          <header className="border-b bl px-3 py-3 flex items-center gap-3">
             <button className="md:hidden mu" onClick={()=>setPeer(null)}><ArrowLeft/></button>
             <button className="flex items-center gap-3 min-w-0 text-left" onClick={()=>setProf(idOf(peerU))}>
-              <Avatar u={peerU} size={40}/>
-              <div className="min-w-0"><Name u={peerU}/><div className={`text-xs ${online(peerU,now)?"act":"mu"}`}>{online(peerU,now)?"online":"last seen "+seen(peerU.lastSeen||peerU.createdAt)}</div></div></button>
-            <button title="Send gift" onClick={()=>setGiftTo(idOf(peerU))} className="ml-auto act p-1.5"><Gift size={22}/></button>
+              <Avatar u={peerU} size={42}/>
+              <div className="min-w-0"><Name u={peerU}/><div className={`text-xs ${online(peerU,now)?"act":"mu"}`}>{seenTxt(peerU)}</div></div></button>
+            <button onClick={()=>setGiftTo(idOf(peerU))} className="ml-auto act p-2"><Gift size={22}/></button>
           </header>
-          <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-1.5" style={{backgroundColor:"var(--chat)",backgroundImage:WALLS[prefs.wall],backgroundSize:WSIZE[prefs.wall]||"auto"}}>
-            {thread.length===0&&<p className="text-center text-sm mu mt-6">No messages yet. Say hi!</p>}
+          <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-1.5" style={{backgroundImage:WALLS[prefs.wall],backgroundSize:WSIZE[prefs.wall]||"auto"}}>
+            {thread.length===0&&<p className="text-center text-sm mu mt-6">{tr("No messages yet. Say hi!")}</p>}
             {thread.map(m=>{const mine=m.from===me.uid,g=gf(m.gift);return m.type==="gift"?(
               <div key={m.id} className="flex justify-center py-1">
                 <div className="pn tx rounded-xl p-4 text-center max-w-[80%] border-2" style={{borderColor:RC[g.r]}}>
                   <div className="flex justify-center"><GImg g={g} size={72}/></div>
-                  <div className="font-bold">{mine?"You sent":nameOf(users,m.from)+" sent you"} a {g.n}</div>
-                  <div className="text-[10px] uppercase" style={{color:RC[g.r],letterSpacing:".2em"}}>{g.r}{g.max?` · limited #${m.no}/${g.max}`:""}</div>
+                  <div className="font-bold">{mine?tr("You sent"):nameOf(users,m.from)+" "+tr("sent you")} {g.n}</div>
+                  <div className="text-[10px] uppercase" style={{color:RC[g.r],letterSpacing:".2em"}}>{g.r}{g.max?` · ${tr("limited")} #${m.no}/${g.max}`:""}</div>
                   {m.text&&<div className="text-sm italic">"{m.text}"</div>}
                   <div className="text-[11px] opacity-80 mt-1">{time(m.ts)}</div>
                 </div></div>):(
               <div key={m.id} className={`flex ${mine?"justify-end":"justify-start"}`}>
-                <div className={`max-w-[80%] px-3 py-1.5 rounded-2xl shadow-sm ${mine?"acb rounded-br-md":"tx rounded-bl-md"}`} style={mine?null:{background:"var(--in)"}}>
+                <div className={`max-w-[80%] px-3.5 py-2 rounded-2xl ${mine?"acb":"tx border"}`} style={mine?null:{background:"var(--glass)",borderColor:"var(--gb)"}}>
                   <span className="whitespace-pre-wrap break-words">{m.text}</span>
                   <span className={`ml-2 float-right mt-1.5 text-[11px] inline-flex items-center gap-0.5 ${mine?"text-white/80":"mu"}`}>{time(m.ts)}{mine&&(m.read?<CheckCheck size={14}/>:<Check size={14}/>)}</span>
                 </div></div>)})}
             <div ref={end}/>
           </div>
-          {me.banned?<div className="bg-red-500/15 text-red-500 text-center text-sm py-3">You are banned from sending messages.</div>:(
-            <div className="relative pn border-t bl p-2.5 flex items-center gap-2">
-              {emo&&<div className="absolute bottom-full left-2 mb-2 pn rounded-2xl shadow-lg border bl p-2 grid grid-cols-8 gap-1 w-72">
-                {EMOJIS.map(e=><button key={e} onClick={()=>setText(t=>t+e)} className="text-xl hv rounded-lg p-1">{e}</button>)}</div>}
-              <button onClick={()=>setEmo(!emo)} className="mu p-1.5"><Smile size={24}/></button>
-              <input className="inp" placeholder="Write a message…" value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} maxLength={2000}/>
-              <button onClick={send} disabled={!text.trim()} className="acb disabled:opacity-40 w-10 h-10 rounded-md grid place-items-center shrink-0"><Send size={18}/></button>
+          {me.banned?<div className="m-3 rounded-full bg-red-500/15 text-red-500 text-center text-sm py-3">{tr("You are banned from sending messages.")}</div>:(
+            <div className="relative m-3 p-1.5 pn rounded-full flex items-center gap-1">
+              {emo&&<div className="absolute bottom-full left-2 mb-2 pn solid rounded-2xl p-2 grid grid-cols-8 gap-1 w-72">
+                {EMOJIS.map(e=><button key={e} onClick={()=>setText(t=>t+e)} className="text-xl hv rounded-full p-1">{e}</button>)}</div>}
+              <button onClick={()=>setEmo(!emo)} className="mu p-2"><Smile size={24}/></button>
+              <input className="inp pill" style={{background:"transparent"}} placeholder={tr("Write a message…")} value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} maxLength={2000}/>
+              <button onClick={send} disabled={!text.trim()} className="acb disabled:opacity-40 w-11 h-11 rounded-full grid place-items-center shrink-0"><Send size={18}/></button>
             </div>)}
         </>)}
       </main>
+
+      <nav className={`${inChat?"hidden md:flex":"flex"} pn fixed z-30 bottom-3 left-3 right-3 md:right-auto md:left-6 md:bottom-6 md:w-[296px] rounded-full p-1.5 gap-1`}>
+        {nav("chats",MessageCircle,tr("Chats"),unreadAll)}{nav("users",Users,tr("Users"))}{nav("settings",Settings,tr("Settings"))}{admin&&nav("admin",Shield,tr("Admin"))}
+      </nav>
 
       {profU&&<Profile u={profU} me={me} now={now} onClose={()=>setProf(null)} onChat={openChat} onGift={id=>{setProf(null);setGiftTo(id)}}/>}
       {giftU&&<GiftPicker to={giftU} me={me} free={false} onSent={(g,no)=>setAnim({g,no})} onClose={()=>setGiftTo(null)}/>}
@@ -516,6 +536,7 @@ const nameOf=(users,id)=>users.find(u=>u.uid===id)?.name||"Someone";
 
 function App(){
   const [prefs,setPrefs]=useState(loadPrefs);
+  LANG=prefs.lang||"en";
   const [au,setAu]=useState(undefined),[users,setUsers]=useState(null),[err,setErr]=useState("");
   const save=p=>{setPrefs(p);try{localStorage.setItem(PK,JSON.stringify(p))}catch{}};
   useEffect(()=>onAuthStateChanged(auth,setAu),[]);
