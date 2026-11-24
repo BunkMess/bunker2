@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vkgram Messenger</title>
+<title>BunkMESS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script type="importmap">
 {"imports":{
@@ -16,30 +16,36 @@
 </script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <style>
-body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#2a2d33}
+.rounded-xl,.rounded-2xl,.rounded-3xl,.rounded-lg,.rounded-md{border-radius:3px!important}
+.shadow,.shadow-sm,.shadow-lg,.shadow-2xl{box-shadow:none!important}
+.pn.rounded-2xl,.pn.rounded-3xl{border:1px solid var(--line)}
 .pn{background:var(--panel)}.bgm{background:var(--bg)}.tx{color:var(--text)}.mu{color:var(--muted)}.bl{border-color:var(--line)}
 .acb{background:var(--acc);color:#fff}.act{color:var(--acc)}.hv:hover{background:var(--hover)}.sel{background:var(--hover);color:var(--text)}
 .inp{background:var(--input);color:var(--text);border-radius:12px;padding:10px 14px;width:100%;outline:none}
-@keyframes gpop{0%{transform:scale(.1) translateY(60px);opacity:0}20%{transform:scale(1.5);opacity:1}35%{transform:scale(1.15)}50%{transform:scale(1.35) rotate(-6deg)}65%{transform:scale(1.2) rotate(6deg)}85%{opacity:1}100%{transform:scale(1.4) translateY(-80px);opacity:0}}
+@keyframes gpop{0%{transform:scale(.6);opacity:0}25%{transform:scale(1.1);opacity:1}40%{transform:scale(1)}85%{opacity:1}100%{transform:scale(1);opacity:0}}
 @keyframes gfly{0%{transform:translate(0,0) scale(.3) rotate(0);opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1.2) rotate(var(--r));opacity:0}}
 @keyframes gfade{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
 @keyframes gtext{0%{opacity:0;transform:translateY(10px)}25%,75%{opacity:1;transform:none}100%{opacity:0}}
 @keyframes gin{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
 @keyframes gfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes gdelta{0%{opacity:0;transform:translateY(6px)}20%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+@keyframes grise{0%{transform:translate(0,0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(var(--x),-110vh) scale(1.1);opacity:0}}
+@keyframes gfly2{0%{transform:translate(-140px,180px) scale(.7);opacity:0}20%{opacity:1}100%{transform:translate(180px,-260px) scale(1.2);opacity:0}}
 .gin{animation:gin .5s ease-out}.gfloat{animation:gfloat 2s ease-in-out infinite}
 .gdelta{position:absolute;right:0;top:-8px;font-weight:700;animation:gdelta 1.8s forwards;pointer-events:none}
 </style>
 </head>
 <body>
-<div id="root" style="padding:24px;color:#667">Loading messenger…</div>
+<div id="root"><p style="padding:24px;color:#889;margin:0">Loading…</p></div>
 <script type="text/babel" data-type="module">
 import React,{useState,useEffect,useMemo,useRef} from "react";
 import {createRoot} from "react-dom/client";
 import {Send,MessageCircle,Users,Settings,Shield,Search,Smile,Check,CheckCheck,BadgeCheck,Ban,Trash2,Megaphone,ArrowLeft,LogOut,X,Gift,Coins} from "lucide-react";
 import {initializeApp} from "firebase/app";
 import {getAuth,RecaptchaVerifier,signInWithPhoneNumber,onAuthStateChanged,signOut} from "firebase/auth";
-import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,query,where,writeBatch,increment,arrayUnion} from "firebase/firestore";
+import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,query,where,writeBatch,increment,arrayUnion,runTransaction} from "firebase/firestore";
 
 /* ============ 1. FIREBASE CONFIG: PASTE YOUR KEYS HERE ============ */
 const firebaseConfig = {
@@ -63,46 +69,70 @@ const app = configured ? initializeApp(firebaseConfig) : null;
 const db = configured ? getFirestore(app) : null;
 const auth = configured ? getAuth(app) : null;
 
-const ONLINE_MS=65000, START_COINS=1000, BONUS=250, PK="vkgram_prefs";
+const ONLINE_MS=65000, START_COINS=1000, BONUS=250, PK="vkgram_prefs2";
 const COLORS=["#e5524d","#f08c32","#e0a800","#4cae4f","#2a9fb5","#2787f5","#7b61d9","#d94fa0"];
 const AVATARS=["🦊","🐼","🐯","🦁","🐸","🐵","🐙","🦄","🐧","🤖","👻","🌸"];
 const EMOJIS=["😀","😂","😍","😎","🥳","😭","😡","👍","👎","🙏","👏","🔥","❤️","💯","🎉","🤔","😴","🤝","👀","✨","🍕","☕","🎮","🚀"];
-const G=[{e:"⭐",n:"Star",c:30},{e:"🔥",n:"Fire",c:50},{e:"🌹",n:"Rose",c:80},{e:"🎂",n:"Cake",c:100},{e:"🧸",n:"Teddy Bear",c:150},{e:"🚀",n:"Rocket",c:300},{e:"🏆",n:"Trophy",c:400},{e:"💎",n:"Diamond",c:500},{e:"👑",n:"Crown",c:800}];
+const RC={common:"#8a8f98",rare:"#3b82f6",epic:"#a855f7",legendary:"#f59e0b",mythic:"#ef4444"};
+const mk=(id,e,cp,n,c,r,fx="pop",max)=>({id,e,cp,n,c,r,fx,max});
+const REG=[mk("heart","❤️","2764_fe0f","Heart",50,"common","up"),mk("star","⭐","2b50","Star",50,"common"),mk("choco","🍫","1f36b","Chocolate",50,"common"),mk("fire","🔥","1f525","Fire",55,"common","up"),mk("rose","🌹","1f339","Rose",55,"common","up"),mk("party","🎉","1f389","Party",60,"common"),mk("cake","🎂","1f382","Cake",60,"common"),
+ mk("teddy","🧸","1f9f8","Teddy Bear",70,"rare"),mk("champ","🍾","1f37e","Champagne",75,"rare"),mk("rocket","🚀","1f680","Rocket",80,"rare","fly"),mk("trophy","🏆","1f3c6","Trophy",80,"rare"),
+ mk("diamond","💎","1f48e","Diamond",90,"epic"),mk("ring","💍","1f48d","Ring",90,"epic"),mk("crown","👑","1f451","Crown",95,"epic"),mk("car","🏎️","1f3ce_fe0f","Race Car",100,"legendary","fly"),mk("cash","💰","1f4b0","Money Bag",100,"legendary")];
+// NFT = limited supply (max copies ever). Serial numbers are minted in Firestore collection "nft".
+const NFT=[mk("n_skull","💀","1f480","Genesis Skull",3000,"epic","pop",100),mk("n_orb","🔮","1f52e","Oracle Orb",5000,"epic","pop",75),mk("n_eagle","🦅","1f985","Golden Eagle",12000,"legendary","fly",25),mk("n_dragon","🐉","1f409","Jade Dragon",20000,"legendary","up",50),mk("n_galaxy","🌌","1f30c","Nebula",35000,"mythic","pop",10),mk("n_comet","☄️","2604_fe0f","Comet Zero",50000,"mythic","fly",5)];
+const ALL=[...REG,...NFT];
+const gf=k=>ALL.find(x=>x.id===k)||ALL[0];
+const GImg=({g,size=48})=>{const [bad,setBad]=useState(false);return bad?<span style={{fontSize:size*.85,lineHeight:1}}>{g.e}</span>:<img src={`https://fonts.gstatic.com/s/e/notoemoji/latest/${g.cp}/512.gif`} width={size} height={size} alt={g.n} draggable={false} onError={()=>setBad(true)}/>};
 const THEMES={
   light:{"--bg":"#edeef0","--panel":"#fff","--text":"#1f2937","--muted":"#6b7280","--line":"#e5e7eb","--rail":"#222b38","--chat":"#dde6ef","--input":"#f0f2f5","--hover":"#f1f3f5","--in":"#fff"},
-  dark:{"--bg":"#0e1621","--panel":"#17212b","--text":"#f5f5f5","--muted":"#7f91a4","--line":"#0e1621","--rail":"#0b121a","--chat":"#0e1621","--input":"#242f3d","--hover":"#202b36","--in":"#182533"},
+  dark:{"--bg":"#0a0a0b","--panel":"#111113","--text":"#e6e6e6","--muted":"#7a7f87","--line":"#23252a","--rail":"#050506","--chat":"#0a0a0b","--input":"#1a1b1e","--hover":"#18191c","--in":"#18191c"},
   midnight:{"--bg":"#0a1128","--panel":"#101a33","--text":"#e8eeff","--muted":"#8b9bd0","--line":"#1c2a55","--rail":"#070d20","--chat":"#0b1430","--input":"#1a2750","--hover":"#16224a","--in":"#16224a"},
   amoled:{"--bg":"#000","--panel":"#000","--text":"#fff","--muted":"#8a8a8a","--line":"#1c1c1c","--rail":"#000","--chat":"#000","--input":"#151515","--hover":"#111","--in":"#151515"}};
-const TNAMES={light:"Light (VK Clean)",dark:"Dark (Telegram Night)",midnight:"Midnight Blue",amoled:"AMOLED Black"};
+const TNAMES={light:"Light (VK Clean)",dark:"Dark (Strict)",midnight:"Midnight Blue",amoled:"AMOLED Black"};
 const ACC={Blue:"#2787f5",Purple:"#8b5cf6",Emerald:"#10b981",Crimson:"#e11d48",Amber:"#d97706"};
 const WALLS={none:"none",dots:"radial-gradient(rgba(128,128,128,.3) 1.5px,transparent 1.5px)",grid:"linear-gradient(rgba(128,128,128,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(128,128,128,.15) 1px,transparent 1px)",waves:"repeating-linear-gradient(45deg,rgba(128,128,128,.14) 0 2px,transparent 2px 14px)"};
 const WSIZE={dots:"22px 22px",grid:"24px 24px"};
-const loadPrefs=()=>{try{return{theme:"light",acc:"Blue",wall:"dots",...JSON.parse(localStorage.getItem(PK))}}catch{return{theme:"light",acc:"Blue",wall:"dots"}}};
+const loadPrefs=()=>{try{return{theme:"dark",acc:"Blue",wall:"none",...JSON.parse(localStorage.getItem(PK))}}catch{return{theme:"dark",acc:"Blue",wall:"none"}}};
 const cssVars=p=>({...(THEMES[p.theme]||THEMES.light),"--acc":ACC[p.acc]||ACC.Blue});
 
 const time=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
 const seen=t=>new Date(t).toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
 const online=(u,now)=>now-(u.lastSeen||0)<ONLINE_MS;
-const prev=m=>m.type==="gift"?"🎁 "+(G[m.gift]||G[0]).n:m.text;
+const prev=m=>m.type==="gift"?"🎁 "+gf(m.gift).n:m.text;
 const B="acb rounded-xl px-4 py-2 font-semibold disabled:opacity-50";
 // Every user doc gets a defined id/uid (old docs without a uid field fall back to their document ID)
 const fixU=d=>({...d.data(),id:d.id,uid:d.data().uid||d.id});
 const idOf=u=>u?(u.id||u.uid):undefined;
 
-async function giveGift(from,to,gi,text,free){
-  const fid=idOf(from);
-  if(!fid||!to||!G[gi])throw new Error("Recipient not found. Reload the page and try again.");
-  const g=G[gi],b=writeBatch(db);
+async function giveGift(from,to,id,text,free){
+  const fid=idOf(from),g=gf(id);
+  if(!fid||!to)throw new Error("Recipient not found. Reload the page and try again.");
+  const ts=Date.now(),entry={g:g.id,by:fid,n:from.name,t:text||"",ts},msg={from:fid,to,participants:[fid,to],type:"gift",gift:g.id,text:text||"",ts,read:false};
+  const stat={gifts:increment(1),messages:increment(1)};
+  if(g.max){
+    await runTransaction(db,async tx=>{
+      const ref=doc(db,"nft",g.id),snap=await tx.get(ref),n=snap.exists()?(snap.data().minted||0):0;
+      if(n>=g.max)throw new Error(g.n+" is sold out");
+      entry.no=msg.no=n+1;
+      tx.set(ref,{minted:n+1},{merge:true});
+      if(!free)tx.update(doc(db,"users",fid),{coins:increment(-g.c)});
+      tx.update(doc(db,"users",to),{gifts:arrayUnion(entry)});
+      tx.set(doc(collection(db,"messages")),msg);
+      tx.set(doc(db,"stats","global"),stat,{merge:true});
+    });
+    return entry.no;
+  }
+  const b=writeBatch(db);
   if(!free)b.update(doc(db,"users",fid),{coins:increment(-g.c)});
-  b.update(doc(db,"users",to),{gifts:arrayUnion({g:gi,by:fid,n:from.name,t:text||"",ts:Date.now()})});
-  b.set(doc(collection(db,"messages")),{from:fid,to,participants:[fid,to],type:"gift",gift:gi,text:text||"",ts:Date.now(),read:false});
-  b.set(doc(db,"stats","global"),{gifts:increment(1),messages:increment(1)},{merge:true});
+  b.update(doc(db,"users",to),{gifts:arrayUnion(entry)});
+  b.set(doc(collection(db,"messages")),msg);
+  b.set(doc(db,"stats","global"),stat,{merge:true});
   await b.commit();
 }
 
 const Avatar=({u,size=44,dot})=>(
   <div className="relative shrink-0" style={{width:size,height:size}}>
-    <div className="w-full h-full rounded-full grid place-items-center" style={{background:u.color,fontSize:size*0.5}}>{u.emoji}</div>
+    <div className="w-full h-full rounded-md grid place-items-center" style={{background:u.color,fontSize:size*0.5}}>{u.emoji}</div>
     {dot!==undefined&&<span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[var(--panel)] ${dot?"bg-green-500":"bg-slate-400"}`}/>}
   </div>);
 const Name=({u})=>(
@@ -138,7 +168,7 @@ function Login(){
   return(
     <div className="min-h-screen grid place-items-center p-4">
       <div className="pn rounded-3xl shadow-lg w-full max-w-sm overflow-hidden">
-        <div className="acb p-6 text-center"><Send className="mx-auto mb-2" size={36}/><h1 className="text-2xl font-bold">Vkgram</h1><p className="text-white/80 text-sm">Sign in with your phone number</p></div>
+        <div className="acb p-6 text-center"><Send className="mx-auto mb-2" size={36}/><h1 className="text-2xl font-bold tracking-wide">BunkMESS</h1><p className="text-white/80 text-sm">Sign in with your phone number</p></div>
         <div className="p-6 space-y-3">
           {!conf?<>
             <input className="inp" type="tel" placeholder="+1 415 555 0123" value={ph} onChange={e=>setPh(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/>
@@ -186,21 +216,21 @@ function Onboard({au,users,logout}){
 }
 
 function Profile({u,me,now,onClose,onChat,onGift}){
-  const cnt={}; (u.gifts||[]).forEach(x=>cnt[x.g]=(cnt[x.g]||0)+1);
+  const gs=(u.gifts||[]).slice().sort((a,b)=>(gf(b.g).max?1:0)-(gf(a.g).max?1:0)||b.ts-a.ts);
   const row=(l,v)=><div className="flex justify-between gap-3 py-2 border-b bl text-sm"><span className="mu">{l}</span><span className="text-right">{v}</span></div>;
   return(
     <Modal onClose={onClose}>
       <div className="p-6 text-center">
-        <div className="mx-auto w-24 h-24 rounded-full grid place-items-center text-5xl" style={{background:u.color}}>{u.emoji}</div>
+        <div className="mx-auto w-24 h-24 rounded-md grid place-items-center text-5xl" style={{background:u.color}}>{u.emoji}</div>
         <div className="text-xl mt-3"><Name u={u}/></div>
         <div className={`text-sm ${online(u,now)?"act":"mu"}`}>{online(u,now)?"online":"last seen "+seen(u.lastSeen||u.createdAt)}</div>
       </div>
       <div className="px-6">
         {row("Username","@"+u.username)}{row("Bio",u.bio||"No bio yet")}
         {row("Registered",new Date(u.createdAt).toLocaleDateString([],{year:"numeric",month:"long",day:"numeric"}))}
-        <div className="py-3"><div className="font-semibold text-sm mb-2">Gifts showcase</div>
-          {Object.keys(cnt).length===0?<p className="text-sm mu">No gifts yet.</p>:
-            <div className="flex flex-wrap gap-2">{Object.entries(cnt).map(([g,n])=><div key={g} title={G[g].n} className="sel rounded-xl px-3 py-1.5 text-2xl">{G[g].e}{n>1&&<span className="text-xs mu ml-1">x{n}</span>}</div>)}</div>}
+        <div className="py-3"><div className="font-semibold text-sm mb-2">Gifts showcase ({gs.length})</div>
+          {!gs.length?<p className="text-sm mu">No gifts yet.</p>:<div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">{gs.map((x,i)=>{const g=gf(x.g);return(
+            <div key={i} title={`${g.n} from ${x.n}`} className="rounded-xl p-1.5 text-center border flex flex-col items-center" style={{borderColor:RC[g.r]}}><GImg g={g} size={40}/>{g.max&&<div className="text-[10px] mu">#{x.no}</div>}</div>)})}</div>}
         </div>
       </div>
       <div className="p-6 pt-2 flex gap-2">
@@ -211,30 +241,36 @@ function Profile({u,me,now,onClose,onChat,onGift}){
 }
 
 function GiftPicker({to,me,free,onClose,onSent}){
-  const [gi,setGi]=useState(0),[msg,setMsg]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
-  const g=G[gi],can=free||(me.coins||0)>=g.c;
-  const go=async()=>{ setBusy(true); try{await giveGift(me,idOf(to),gi,msg.trim(),free);onSent&&onSent(gi);onClose()}catch(e){setErr(e.message);setBusy(false)} };
+  const [tab,setTab]=useState("gifts"),[gi,setGi]=useState("heart"),[msg,setMsg]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[mint,setMint]=useState({});
+  useEffect(()=>onSnapshot(collection(db,"nft"),s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data().minted||0);setMint(m)}),[]);
+  const g=gf(gi),left=g.max?g.max-(mint[g.id]||0):1,can=left>0&&(free||(me.coins||0)>=g.c);
+  const go=async()=>{setBusy(true);try{const no=await giveGift(me,idOf(to),gi,msg.trim(),free);onSent&&onSent(g,no);onClose()}catch(e){setErr(e.message);setBusy(false)}};
   return(
     <Modal onClose={onClose}><div className="p-5 space-y-3">
       <div className="flex justify-between items-center"><h3 className="font-bold text-lg">Gift for {to.name}</h3><span className="text-sm mu flex items-center gap-1"><Coins size={15}/>{me.coins||0}</span></div>
-      <div className="grid grid-cols-3 gap-2">{G.map((x,i)=>(
-        <button key={i} onClick={()=>setGi(i)} className={`sel rounded-xl py-2 ${gi===i?"ring-2 ring-[var(--acc)]":""}`}><div className="text-3xl">{x.e}</div><div className="text-xs">{x.n}</div><div className="text-xs mu">{free?"Free":x.c+" coins"}</div></button>))}</div>
+      <div className="flex gap-2">{[["gifts","Gifts"],["nft","NFT · Limited"]].map(([k,l])=><button key={k} onClick={()=>{setTab(k);setGi((k==="gifts"?REG:NFT)[0].id)}} className={`rounded-xl px-3 py-1.5 text-sm ${tab===k?"acb":"sel"}`}>{l}</button>)}</div>
+      <div className="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto">{(tab==="gifts"?REG:NFT).map(x=>{const l=x.max?x.max-(mint[x.id]||0):null;return(
+        <button key={x.id} disabled={l===0} onClick={()=>setGi(x.id)} className={`sel rounded-xl py-2 border disabled:opacity-40 flex flex-col items-center ${gi===x.id?"ring-2 ring-[var(--acc)]":""}`} style={{borderColor:RC[x.r]}}>
+          <GImg g={x} size={44}/><div className="text-xs mt-1">{x.n}</div>
+          <div className="text-[10px] uppercase" style={{color:RC[x.r]}}>{x.r}</div>
+          <div className="text-[11px] mu">{l===0?"Sold out":(l!==null?`${l}/${x.max} left · `:"")+(free?"Free":x.c)}</div></button>)})}</div>
       <input className="inp" placeholder="Add a message (optional)" maxLength={100} value={msg} onChange={e=>setMsg(e.target.value)}/>
       {err&&<p className="text-sm text-red-500">{err}</p>}
       <p className="text-xs mu">Balance after: {(me.coins||0)-(free?0:g.c)} coins</p>
-      <button disabled={busy||!can} onClick={go} className={B+" w-full"}>{can?`Send ${g.n}${free?"":" for "+g.c+" coins"}`:"Not enough coins"}</button>
+      <button disabled={busy||!can} onClick={go} className={B+" w-full"}>{left<1?"Sold out":can?`Send ${g.n}${free?"":" for "+g.c+" coins"}`:"Not enough coins"}</button>
     </div></Modal>);
 }
 
-function GiftAnim({g,onDone}){
-  useEffect(()=>{const t=setTimeout(onDone,2800);return()=>clearTimeout(t)},[]);
-  const ps=useMemo(()=>Array.from({length:26},(_,i)=>{const a=Math.random()*6.28,d=140+Math.random()*190;return{x:Math.cos(a)*d,y:Math.sin(a)*d-60,r:Math.round(Math.random()*360),s:16+Math.random()*22,dl:Math.random()*.35,e:i%3?g.e:["✨","⭐","💖"][i%3]}}),[]);
+function GiftAnim({a,onDone}){
+  const g=a.g,c=RC[g.r];
+  useEffect(()=>{const t=setTimeout(onDone,2600);return()=>clearTimeout(t)},[]);
+  const ps=useMemo(()=>g.fx==="up"?Array.from({length:14},()=>({x:(Math.random()-.5)*280,dl:Math.random()*.9,s:22+Math.random()*30})):[],[]);
   return(
-    <div className="fixed inset-0 z-[60] pointer-events-none grid place-items-center overflow-hidden" style={{background:"radial-gradient(circle,rgba(0,0,0,.5),transparent 70%)",animation:"gfade 2.8s forwards"}}>
-      <div className="relative grid place-items-center">
-        {ps.map((p,i)=><span key={i} className="absolute" style={{"--x":p.x+"px","--y":p.y+"px","--r":p.r+"deg",fontSize:p.s,opacity:0,animation:`gfly 1.9s ${p.dl}s ease-out forwards`}}>{p.e}</span>)}
-        <div style={{fontSize:120,animation:"gpop 2.6s ease-out forwards"}}>{g.e}</div>
-        <div className="absolute top-full mt-4 text-white font-bold text-xl whitespace-nowrap" style={{animation:"gtext 2.6s forwards",textShadow:"0 2px 8px #000"}}>{g.n}!</div>
+    <div className="fixed inset-0 z-[60] pointer-events-none grid place-items-center overflow-hidden" style={{background:"rgba(0,0,0,.75)",animation:"gfade 2.6s forwards"}}>
+      {ps.map((p,i)=><div key={i} className="absolute" style={{bottom:-40,left:"calc(50% - 20px)","--x":p.x+"px",animation:`grise 2.2s ${p.dl}s ease-out both`}}><GImg g={g} size={p.s}/></div>)}
+      <div className="text-center" style={{filter:g.max?`drop-shadow(0 0 28px ${c})`:"none"}}>
+        <div className="flex justify-center" style={{animation:g.fx==="fly"?"gfly2 2.2s ease-in forwards":"gpop 2.4s ease-out forwards"}}><GImg g={g} size={140}/></div>
+        <div className="mt-4 text-xs uppercase" style={{color:c,letterSpacing:".3em",animation:"gtext 2.4s forwards"}}>{g.n}{a.no?` · #${a.no}/${g.max}`:""}</div>
       </div>
     </div>);
 }
@@ -268,7 +304,7 @@ function Prefs({me,logout,prefs,save}){
 
 function Admin({me,users,stats,ann,now}){
   const [t,setT]=useState("users"),[q,setQ]=useState(""),[a,setA]=useState(""),[all,setAll]=useState([]),[fq,setFq]=useState("");
-  const [to,setTo]=useState(""),[gi,setGi]=useState(G.length-1),[amt,setAmt]=useState(100),[note,setNote]=useState("");
+  const [to,setTo]=useState(""),[gi,setGi]=useState("crown"),[amt,setAmt]=useState(100),[note,setNote]=useState("");
   useEffect(()=>onSnapshot(collection(db,"messages"),s=>setAll(s.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>y.ts-x.ts))),[]);
   const nm=id=>users.find(x=>x.uid===id)?.name||"deleted";
   const upd=(u,p)=>updateDoc(doc(db,"users",idOf(u)),p);
@@ -317,8 +353,8 @@ function Admin({me,users,stats,ann,now}){
       {t==="eco"&&<div className="space-y-3">
         <div className={card}><div className="font-semibold">Send a free gift</div>
           <select className="inp" value={target?.uid||""} onChange={e=>setTo(e.target.value)}>{users.filter(u=>idOf(u)!==idOf(me)).map(u=><option key={idOf(u)} value={idOf(u)}>{u.name} (@{u.username})</option>)}</select>
-          <div className="flex flex-wrap gap-2">{G.map((x,i)=><button key={i} title={x.n} onClick={()=>setGi(i)} className={`sel rounded-xl px-3 py-1.5 text-2xl ${gi===i?"ring-2 ring-[var(--acc)]":""}`}>{x.e}</button>)}</div>
-          <button disabled={!target} onClick={async()=>{await giveGift(me,idOf(target),gi,"A gift from the admin",true);setNote("Gift sent")}} className={B}>Send {G[gi].n} for free</button></div>
+          <div className="flex flex-wrap gap-2">{ALL.map(x=><button key={x.id} title={x.n} onClick={()=>setGi(x.id)} className={`sel rounded-xl px-3 py-1.5 text-2xl ${gi===x.id?"ring-2 ring-[var(--acc)]":""}`}><GImg g={x} size={32}/></button>)}</div>
+          <button disabled={!target} onClick={async()=>{await giveGift(me,idOf(target),gi,"A gift from the admin",true);setNote("Gift sent")}} className={B}>Send {gf(gi).n} for free</button></div>
         <div className={card}><div className="font-semibold">Coins for everyone</div>
           <input className="inp" type="number" value={amt} onChange={e=>setAmt(Number(e.target.value))}/>
           <div className="flex flex-wrap gap-2">
@@ -346,7 +382,7 @@ function Messenger({me,users,logout,prefs,save}){
       const arr=withId(s);
       if(!seenIds.current)seenIds.current=new Set(arr.map(m=>m.id));
       else{const fresh=arr.filter(m=>!seenIds.current.has(m.id));fresh.forEach(m=>seenIds.current.add(m.id));
-        const gm=fresh.filter(m=>m.type==="gift"&&m.to===me.uid&&Date.now()-m.ts<20000).pop();if(gm)setAnim(G[gm.gift]||G[0])}
+        const gm=fresh.filter(m=>m.type==="gift"&&m.to===me.uid&&Date.now()-m.ts<20000).pop();if(gm)setAnim({g:gf(gm.gift),no:gm.no})}
       setMsgs(arr)});
     const u2=onSnapshot(collection(db,"announcements"),s=>setAnn(withId(s)));
     const u3=onSnapshot(doc(db,"stats","global"),s=>setStats(s.data()||{}));
@@ -428,7 +464,7 @@ function Messenger({me,users,logout,prefs,save}){
       </aside>
 
       <main className={`${showMain?"flex":"hidden md:flex"} flex-1 flex-col min-w-0`}>
-        {pin&&<div className="bg-[#fff7d6] text-yellow-900 border-b border-yellow-200 px-4 py-2 flex items-center gap-2 text-sm">
+        {pin&&<div className="pn tx border-b bl px-4 py-2 flex items-center gap-2 text-sm" style={{borderLeft:"3px solid var(--acc)"}}>
           <Megaphone size={16} className="shrink-0"/><span className="min-w-0 flex-1"><b>Announcement:</b> {pin.text}</span>
           {admin&&<button title="Remove announcement" onClick={()=>deleteDoc(doc(db,"announcements",pin.id))}><X size={16}/></button>}</div>}
 
@@ -444,11 +480,12 @@ function Messenger({me,users,logout,prefs,save}){
           </header>
           <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-1.5" style={{backgroundColor:"var(--chat)",backgroundImage:WALLS[prefs.wall],backgroundSize:WSIZE[prefs.wall]||"auto"}}>
             {thread.length===0&&<p className="text-center text-sm mu mt-6">No messages yet. Say hi!</p>}
-            {thread.map(m=>{const mine=m.from===me.uid,g=G[m.gift]||G[0];return m.type==="gift"?(
+            {thread.map(m=>{const mine=m.from===me.uid,g=gf(m.gift);return m.type==="gift"?(
               <div key={m.id} className="flex justify-center py-1">
-                <div className="gin rounded-2xl p-4 text-center text-white shadow-lg max-w-[80%]" style={{background:"linear-gradient(135deg,var(--acc),#a855f7)"}}>
-                  <div className="text-5xl gfloat">{g.e}</div>
+                <div className="pn tx rounded-xl p-4 text-center max-w-[80%] border-2" style={{borderColor:RC[g.r]}}>
+                  <div className="flex justify-center"><GImg g={g} size={72}/></div>
                   <div className="font-bold">{mine?"You sent":nameOf(users,m.from)+" sent you"} a {g.n}</div>
+                  <div className="text-[10px] uppercase" style={{color:RC[g.r],letterSpacing:".2em"}}>{g.r}{g.max?` · limited #${m.no}/${g.max}`:""}</div>
                   {m.text&&<div className="text-sm italic">"{m.text}"</div>}
                   <div className="text-[11px] opacity-80 mt-1">{time(m.ts)}</div>
                 </div></div>):(
@@ -465,14 +502,14 @@ function Messenger({me,users,logout,prefs,save}){
                 {EMOJIS.map(e=><button key={e} onClick={()=>setText(t=>t+e)} className="text-xl hv rounded-lg p-1">{e}</button>)}</div>}
               <button onClick={()=>setEmo(!emo)} className="mu p-1.5"><Smile size={24}/></button>
               <input className="inp" placeholder="Write a message…" value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} maxLength={2000}/>
-              <button onClick={send} disabled={!text.trim()} className="acb disabled:opacity-40 w-10 h-10 rounded-full grid place-items-center shrink-0"><Send size={18}/></button>
+              <button onClick={send} disabled={!text.trim()} className="acb disabled:opacity-40 w-10 h-10 rounded-md grid place-items-center shrink-0"><Send size={18}/></button>
             </div>)}
         </>)}
       </main>
 
       {profU&&<Profile u={profU} me={me} now={now} onClose={()=>setProf(null)} onChat={openChat} onGift={id=>{setProf(null);setGiftTo(id)}}/>}
-      {giftU&&<GiftPicker to={giftU} me={me} free={false} onSent={gi=>setAnim(G[gi])} onClose={()=>setGiftTo(null)}/>}
-      {anim&&<GiftAnim g={anim} onDone={()=>setAnim(null)}/>}
+      {giftU&&<GiftPicker to={giftU} me={me} free={false} onSent={(g,no)=>setAnim({g,no})} onClose={()=>setGiftTo(null)}/>}
+      {anim&&<GiftAnim a={anim} onDone={()=>setAnim(null)}/>}
     </div>);
 }
 const nameOf=(users,id)=>users.find(u=>u.uid===id)?.name||"Someone";
