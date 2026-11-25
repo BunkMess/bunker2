@@ -799,7 +799,127 @@ function RoomInfo({r,me,admin,users,rooms,onClose,onGone}){
       {(own||admin)&&!r.fath&&<button onClick={del} className="w-full text-red-500 text-sm py-2">{tr("Delete")}</button>}
     </div></Modal>);
 }
+function MiniApp({r,me,onClose}){
+  const [tab,setTab]=useState("buy"),[lots,setLots]=useState([]),[sellIdx,setSellIdx]=useState(null),[price,setPrice]=useState(""),[busy,setBusy]=useState(false),[msg,setMsg]=useState("");
+  useEffect(()=>onSnapshot(collection(db,"market"),s=>setLots(s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts))),[]);
+  const myNfts=(me.gifts||[]).map((x,idx)=>({x,idx,g:gf(x.g)})).filter(o=>o.g.max);
+  const myLots=lots.filter(x=>x.seller===me.uid);
 
+  const listLot=async()=>{
+    const p=Math.max(1,Math.min(10000000,Number(price)));if(!p||sellIdx===null)return;
+    const item=(me.gifts||[])[sellIdx];if(!item)return;
+    setBusy(true);setMsg("");
+    try{
+      await runTransaction(db,async tx=>{
+        const uref=doc(db,"users",me.uid),arr=((await tx.get(uref)).data().gifts||[]).slice();
+        const i=arr.findIndex(y=>y.ts===item.ts&&y.g===item.g&&y.no===item.no);
+        if(i<0)throw new Error("NFT уже недоступен");
+        const [picked]=arr.splice(i,1);
+        tx.update(uref,{gifts:arr});
+        tx.set(doc(collection(db,"market")),{seller:me.uid,sellerName:me.name,price:p,item:picked,ts:Date.now()});
+      });
+      setSellIdx(null);setPrice("");setTab("mine");setMsg("Лот выставлен на рынок!");
+    }catch(e){setMsg(e.message)}
+    setBusy(false);
+  };
+
+  const cancelLot=async lot=>{
+    setBusy(true);setMsg("");
+    try{
+      await runTransaction(db,async tx=>{
+        const lref=doc(db,"market",lot.id),lsnap=await tx.get(lref);
+        if(!lsnap.exists()||lsnap.data().seller!==me.uid)throw new Error("Лот уже куплен");
+        tx.delete(lref);
+        tx.update(doc(db,"users",me.uid),{gifts:arrayUnion(lsnap.data().item)});
+      });
+      setMsg("NFT возвращён в инвентарь");
+    }catch(e){setMsg(e.message)}
+    setBusy(false);
+  };
+
+  const buyLot=async lot=>{
+    if(lot.seller===me.uid)return;
+    setBusy(true);setMsg("");
+    try{
+      await runTransaction(db,async tx=>{
+        const lref=doc(db,"market",lot.id),lsnap=await tx.get(lref);
+        if(!lsnap.exists())throw new Error("Лот уже выкупили!");
+        const d=lsnap.data(),bref=doc(db,"users",me.uid),bsnap=await tx.get(bref);
+        if((bsnap.data().coins||0)<d.price)throw new Error("Недостаточно монет");
+        tx.delete(lref);
+        tx.update(bref,{coins:increment(-d.price),gifts:arrayUnion({...d.item,by:d.seller,n:d.sellerName+" (Market)",ts:Date.now()})});
+        tx.update(doc(db,"users",d.seller),{coins:increment(d.price)});
+      });
+      setMsg("Покупка успешна! NFT добавлен в профиль.");
+    }catch(e){setMsg(e.message)}
+    setBusy(false);
+  };
+
+  return(
+    <div className="fixed inset-0 z-50 bg-black/70 flex flex-col justify-end md:justify-center md:items-center" onClick={onClose}>
+      <div className="pn solid tx w-full md:max-w-lg h-[88dvh] md:h-[80vh] rounded-t-3xl md:rounded-3xl flex flex-col overflow-hidden shadow-2xl" onClick={e=>e.stopPropagation()}>
+        <div className="px-4 py-3 border-b bl flex items-center gap-3">
+          <Avatar u={r} size={36}/>
+          <div className="min-w-0 flex-1"><div className="font-bold truncate">{r.name}</div><div className="text-[11px] act">Mini App · P2P Market</div></div>
+          <span className="pn rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-1"><Coins size={13} className="act"/>{me.coins||0}</span>
+          <button onClick={onClose} className="sel w-8 h-8 rounded-full grid place-items-center"><X size={16}/></button>
+        </div>
+        <div className="p-3 border-b bl flex gap-1.5">
+          {[["buy",`Рынок (${lots.length})`],["sell",`Мои NFT (${myNfts.length})`],["mine",`Лоты (${myLots.length})`]].map(([k,l])=>(
+            <button key={k} onClick={()=>{setTab(k);setSellIdx(null);setMsg("")}} className={`flex-1 py-2 rounded-xl text-xs font-semibold ${tab===k?"acb":"sel"}`}>{l}</button>
+          ))}
+        </div>
+        {msg&&<div className="mx-3 mt-2 px-3 py-2 rounded-xl bg-blue-500/15 act text-xs text-center font-medium">{msg}</div>}
+        <div className="flex-1 overflow-y-auto p-3">
+          {tab==="buy"&&(lots.length===0?<p className="text-center text-sm mu mt-10">На рынке пока нет лотов. Выстави свой NFT во вкладке «Мои NFT»!</p>:(
+            <div className="grid grid-cols-2 gap-2.5">{lots.map(lot=>{const g=gf(lot.item.g),nf=lot.item.nf,own=lot.seller===me.uid;return(
+              <div key={lot.id} className="rounded-2xl p-3 border flex flex-col items-center text-center relative overflow-hidden" style={nf?{...nftStyle(nf),borderColor:RC[g.r],color:"#fff"}:{borderColor:RC[g.r]}}>
+                {nf&&<Pat nf={nf} g={g}/>}
+                <div className="relative flex flex-col items-center w-full">
+                  <GImg g={g} size={64}/>
+                  <div className="font-bold text-sm mt-1">{g.n} <span className="opacity-80">#{lot.item.no}</span></div>
+                  <div className="text-[10px] uppercase tracking-wider opacity-80">{g.r}</div>
+                  <div className="text-[11px] opacity-80 mt-0.5 truncate w-full">Продавец: {lot.sellerName}</div>
+                  {own?<button disabled={busy} onClick={()=>cancelLot(lot)} className="mt-2 w-full py-1.5 rounded-xl bg-black/40 text-white text-xs font-semibold">Снять ({lot.price} 🪙)</button>:
+                    <button disabled={busy||(me.coins||0)<lot.price} onClick={()=>buyLot(lot)} className="mt-2 w-full py-1.5 rounded-xl bg-white text-black font-bold text-xs disabled:opacity-50">Купить · {lot.price} 🪙</button>}
+                </div>
+              </div>)})}</div>))}
+
+          {tab==="sell"&&(myNfts.length===0?<p className="text-center text-sm mu mt-10">У тебя пока нет лимитированных NFT на витрине.</p>:(
+            <div className="space-y-3">
+              {sellIdx!==null&&<div className="pn rounded-2xl p-3 space-y-2 border border-[var(--acc)]">
+                <div className="text-xs font-semibold">Укажи цену продажи в монетах для {gf(myNfts.find(o=>o.idx===sellIdx)?.x.g).n}:</div>
+                <div className="flex gap-2">
+                  <input className="inp" type="number" placeholder="Например: 15000" value={price} onChange={e=>setPrice(e.target.value)}/>
+                  <button disabled={busy||!price} onClick={listLot} className={B+" shrink-0"}>Выставить</button>
+                </div>
+              </div>}
+              <div className="grid grid-cols-2 gap-2.5">{myNfts.map(o=>{const nf=o.x.nf;return(
+                <div key={o.idx} className="rounded-2xl p-3 border flex flex-col items-center text-center relative overflow-hidden" style={nf?{...nftStyle(nf),borderColor:RC[o.g.r],color:"#fff"}:{borderColor:RC[o.g.r]}}>
+                  {nf&&<Pat nf={nf} g={o.g}/>}
+                  <div className="relative flex flex-col items-center w-full">
+                    <GImg g={o.g} size={64}/>
+                    <div className="font-bold text-sm mt-1">{o.g.n} #{o.x.no}</div>
+                    <button onClick={()=>{setSellIdx(o.idx);setPrice(String(o.g.c))}} className="mt-2 w-full py-1.5 rounded-xl bg-white text-black font-bold text-xs">Продать</button>
+                  </div>
+                </div>)})}</div>
+            </div>))}
+
+          {tab==="mine"&&(myLots.length===0?<p className="text-center text-sm mu mt-10">У тебя нет активных лотов на продаже.</p>:(
+            <div className="grid grid-cols-2 gap-2.5">{myLots.map(lot=>{const g=gf(lot.item.g),nf=lot.item.nf;return(
+              <div key={lot.id} className="rounded-2xl p-3 border flex flex-col items-center text-center relative overflow-hidden" style={nf?{...nftStyle(nf),borderColor:RC[g.r],color:"#fff"}:{borderColor:RC[g.r]}}>
+                {nf&&<Pat nf={nf} g={g}/>}
+                <div className="relative flex flex-col items-center w-full">
+                  <GImg g={g} size={64}/>
+                  <div className="font-bold text-sm mt-1">{g.n} #{lot.item.no}</div>
+                  <div className="text-xs font-bold mt-0.5">Цена: {lot.price} 🪙</div>
+                  <button disabled={busy} onClick={()=>cancelLot(lot)} className="mt-2 w-full py-1.5 rounded-xl bg-red-500 text-white font-bold text-xs">Снять с продажи</button>
+                </div>
+              </div>)})}</div>))}
+        </div>
+      </div>
+    </div>);
+}
 function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
   const bot=r.type==="bot",th=bot?r.id+"__"+me.uid:r.id;
   const [ms,setMs]=useState([]),[text,setText]=useState(""),[info,setInfo]=useState(false),[menu,setMenu]=useState(false),end=useRef(null);
