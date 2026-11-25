@@ -471,7 +471,7 @@ const Seg=({opts,v,set})=>(
   <div className="flex gap-1 p-1 rounded-full sel">{opts.map(([k,l])=><button key={k} onClick={()=>set(k)} className={`flex-1 px-3 py-1.5 rounded-full text-sm ${v===k?"acb":""}`}>{tr(l)}</button>)}</div>);
 
 function Prefs({me,logout,prefs,save}){
-  const [sec,setSec]=useState("profile"),[f,setF]=useState({name:me.name,bio:me.bio||"",emoji:me.emoji,color:me.color}),[ok,setOk]=useState(false),[perr,setPerr]=useState("");
+  const [sec,setSec]=useState("profile"),[f,setF]=useState({name:me.name,bio:me.bio||"",emoji:me.emoji,color:me.color}),[ok,setOk]=useState(false),[perr,setPerr]=useState(""),[askSell,setAskSell]=useState(null);
   const fileRef=useRef(null),ref=doc(db,"users",me.uid),[ip,setIp]=useState(!!window.__ip);
   useEffect(()=>{const f=()=>setIp(!!window.__ip);window.addEventListener("ipready",f);return()=>window.removeEventListener("ipready",f)},[]);
   const set=p=>{setOk(false);setF(o=>({...o,...p}))},P=(k,v)=>save({...prefs,[k]:v});
