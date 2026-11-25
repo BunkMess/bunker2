@@ -111,7 +111,11 @@ NFT.push(
  mk("n_core","⚛️","269b_fe0f","Plasma Core",26000,"mythic","pop",12),mk("n_rose","🥀","1f940","Eternal Rose",19000,"legendary","pop",24),
  mk("n_sakura","🌸","1f338","Sakura Bloom",4200,"epic","pop",85),mk("n_bunny","🐰","1f430","Jelly Bunny",3300,"epic","pop",100),
  mk("n_wand","🪄","1fa84","Magic Wand",8200,"legendary","pop",45),mk("n_peach","🍑","1f351","Golden Peach",21000,"legendary","pop",22),
- mk("n_cap","🧢","1f9e2","Royal Cap",45000,"mythic","pop",6),mk("n_helm","🪖","1fa96","Heroic Helmet",32000,"mythic","pop",10));
+ mk("n_cap","🧢","1f9e2","Royal Cap",45000,"mythic","pop",6),mk("n_helm","🪖","1fa96","Heroic Helmet",32000,"mythic","pop",10),
+ mk("n_hexpot","🍲","1f372","Hex Pot",7800,"legendary","pop",42),mk("n_homecake","🍰","1f370","Homemade Cake",3400,"epic","pop",95),
+ mk("n_wine","🍷","1f377","Spiced Wine",5400,"epic","pop",68),mk("n_santa","🎅","1f385","Santa Hat",3000,"epic","pop",120),
+ mk("n_skullflower","☠️","2620_fe0f","Skull Flower",13500,"legendary","pop",30),mk("n_signet","💍","1f48d","Signet Ring",10500,"legendary","pop",36),
+ mk("n_cigar","🚬","1f6ac","Vintage Cigar",6800,"epic","pop",58),mk("n_kissfrog","💋","1f48b","Kissed Frog",4800,"epic","pop",75));
 const ALL=[...REG,...NFT];
 const gf=k=>ALL.find(x=>x.id===k)||ALL[0];
 const GImg=({g,size=48})=>{const [bad,setBad]=useState(false);return bad?<span style={{fontSize:size*.85,lineHeight:1}}>{g.e}</span>:<img src={IMG[g.id]||`https://fonts.gstatic.com/s/e/notoemoji/latest/${g.cp}/512.gif`} width={size} height={size} alt={g.n} draggable={false} onError={()=>setBad(true)}/>};
