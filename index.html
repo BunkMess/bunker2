@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="BunkMESS">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <title>BunkMESS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script type="importmap">
@@ -15,6 +20,7 @@
 "firebase/firestore":"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"}}
 </script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <style>
 html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#2a2d33}
@@ -44,8 +50,9 @@ html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"
 @keyframes ghit{0%,100%{transform:translate(0,0)}20%{transform:translate(-8px,3px) scale(.994)}40%{transform:translate(7px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(2px,-1px)}}
 @keyframes gland{0%{opacity:0;transform:scale(1.7) translateY(-24px)}55%{opacity:1;transform:scale(.93)}100%{opacity:1;transform:scale(1)}}
 .gland{animation:gland .6s 1.6s both}.ghit{animation:ghit .45s}
-.fl{animation:afl 3s ease-in-out infinite}.tw,.pu{transform-box:fill-box;transform-origin:center}.tw{animation:atw 1.6s ease-in-out infinite}.pu{animation:apu 2s ease-in-out infinite}.ri{animation:ari 2.6s ease-in infinite}
-@keyframes afl{50%{transform:translateY(-3px)}}@keyframes atw{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.1)}}@keyframes apu{50%{transform:scale(1.06)}}@keyframes ari{0%{opacity:0;transform:translateY(6px)}30%{opacity:.85}100%{opacity:0;transform:translateY(-14px)}}
+.fl{transform-box:fill-box;transform-origin:50% 100%;animation:afl 3.4s cubic-bezier(.45,.05,.55,.95) infinite}.gsv{animation:aspring .9s cubic-bezier(.34,1.56,.64,1) both}.shd{transform-box:fill-box;transform-origin:center;animation:ashd 3.4s cubic-bezier(.45,.05,.55,.95) infinite}.tw,.pu{transform-box:fill-box;transform-origin:center}.tw{animation:atw 1.6s ease-in-out infinite}.pu{animation:apu 2s ease-in-out infinite}.ri{animation:ari 2.6s ease-in infinite}
+@media(max-width:767px){.dock{bottom:calc(12px + env(safe-area-inset-bottom))}}
+@keyframes afl{0%,100%{transform:translateY(0) rotate(-1.4deg)}50%{transform:translateY(-4px) rotate(1.4deg)}}@keyframes ashd{50%{transform:scale(.86);opacity:.18}}@keyframes aspring{from{transform:scale(.55);opacity:0}}@keyframes atw{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.1)}}@keyframes apu{50%{transform:scale(1.06)}}@keyframes ari{0%{opacity:0;transform:translateY(6px)}30%{opacity:.85}100%{opacity:0;transform:translateY(-14px)}}
 .out{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 34%,transparent),color-mix(in srgb,var(--acc) 10%,transparent)) padding-box,linear-gradient(135deg,color-mix(in srgb,var(--acc) 90%,#fff),color-mix(in srgb,var(--acc) 12%,transparent) 75%) border-box;border:1px solid transparent;backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);color:var(--text);box-shadow:0 4px 18px color-mix(in srgb,var(--acc) 16%,transparent)}
 .inb{background:linear-gradient(135deg,var(--bub),transparent) padding-box,linear-gradient(135deg,var(--bbd),transparent 70%) border-box;border:1px solid transparent;backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%)}
 [data-bs=ghost] .out{background:transparent!important;backdrop-filter:none;-webkit-backdrop-filter:none;border:1.5px solid var(--acc);box-shadow:none}
@@ -81,7 +88,9 @@ const firebaseConfig = {
 const ADMIN_USERNAME = "admin";
 const ADMIN_PHONE = "+16505550100";
 // OPTIONAL: your own artwork for any gift. Add "gift_id": "https://your-site/image.png" (use only images you have rights to).
-const IMG = { /* n_comet: "https://example.com/comet.png", */ };
+const IMG = { /* n_cap: "https://example.com/cap.png", */ };
+// OPTIONAL: Lottie animations (JSON URL) per gift id, e.g. n_cap: "https://your-host/cap.json". Use only files you are allowed to use.
+const LOT = { /* n_cap: "https://example.com/cap.json", */ };
 /* =================================================================== */
 
 const configured = !firebaseConfig.apiKey.startsWith("YOUR_");
@@ -99,27 +108,17 @@ const REG=[mk("heart","❤️","2764_fe0f","Heart",50,"common","up"),mk("star","
  mk("teddy","🧸","1f9f8","Teddy Bear",70,"rare"),mk("champ","🍾","1f37e","Champagne",75,"rare"),mk("rocket","🚀","1f680","Rocket",80,"rare","fly"),mk("trophy","🏆","1f3c6","Trophy",80,"rare"),
  mk("diamond","💎","1f48e","Diamond",90,"epic"),mk("ring","💍","1f48d","Ring",90,"epic"),mk("crown","👑","1f451","Crown",95,"epic"),mk("car","🏎️","1f3ce_fe0f","Race Car",100,"legendary","fly"),mk("cash","💰","1f4b0","Money Bag",100,"legendary")];
 // NFT = limited supply (max copies ever). Serial numbers are minted in Firestore collection "nft".
-const NFT=[mk("n_skull","💀","1f480","Genesis Skull",3000,"epic","pop",100),mk("n_orb","🔮","1f52e","Oracle Orb",5000,"epic","pop",75),mk("n_eagle","🦅","1f985","Golden Eagle",12000,"legendary","fly",25),mk("n_dragon","🐉","1f409","Jade Dragon",20000,"legendary","up",50),mk("n_galaxy","🌌","1f30c","Nebula",35000,"mythic","pop",10),mk("n_comet","☄️","2604_fe0f","Comet Zero",50000,"mythic","fly",5)];
-NFT.push(mk("n_ghost","👻","1f47b","Phantom",3500,"epic","pop",90),mk("n_alien","👽","1f47d","Visitor X",6000,"epic","pop",60),mk("n_robot","🤖","1f916","Cyber Unit",7500,"epic","pop",55),mk("n_katana","⚔️","2694_fe0f","Katana",9000,"legendary","pop",40),mk("n_wolf","🐺","1f43a","Lone Wolf",11000,"legendary","pop",35),mk("n_owl","🦉","1f989","Night Owl",13000,"legendary","pop",30),mk("n_lion","🦁","1f981","Golden Lion",16000,"legendary","pop",25),mk("n_bolt","⚡","26a1","Thunder God",18000,"legendary","pop",20),mk("n_tiger","🐯","1f42f","Neon Tiger",22000,"mythic","pop",15),mk("n_saturn","🪐","1fa90","Saturn",28000,"mythic","pop",12),mk("n_moon","🌕","1f315","Full Moon",36000,"mythic","pop",9),mk("n_sun","☀️","2600_fe0f","Solar Flare",42000,"mythic","pop",7));
-NFT.push(
- mk("n_locket","💝","1f49d","Heart Locket",4500,"epic","pop",80),mk("n_frog","🐸","1f438","Frog Plush",9500,"legendary","pop",40),
- mk("n_bag","🎒","1f392","Loot Bag",3200,"epic","pop",100),mk("n_potion","🧪","1f9ea","Magic Potion",3800,"epic","pop",90),
- mk("n_love","⚗️","2697_fe0f","Love Potion",5200,"epic","pop",70),mk("n_hat","🎩","1f3a9","Top Hat",6500,"epic","pop",60),
- mk("n_lamp","🪔","1fa94","Genie Lamp",12500,"legendary","pop",35),mk("n_frost","❄️","2744_fe0f","Frost Globe",3600,"epic","pop",95),
- mk("n_watch","⌚","231a","Swiss Watch",14000,"legendary","pop",30),mk("n_cat","🐱","1f431","Lucky Cat",5800,"epic","pop",65),
- mk("n_eye","🧿","1f9ff","Evil Eye",7200,"epic","pop",55),mk("n_blade","🗡️","1f5e1_fe0f","Light Blade",15000,"legendary","pop",28),
- mk("n_vinyl","💿","1f4bf","Gold Vinyl",6200,"epic","pop",60),mk("n_perfume","🧴","1f9f4","Perfume Bottle",5000,"epic","pop",70),
- mk("n_mask","🎭","1f3ad","Golden Mask",17000,"legendary","pop",26),mk("n_shard","💠","1f4a0","Astral Shard",24000,"mythic","pop",14),
- mk("n_core","⚛️","269b_fe0f","Plasma Core",26000,"mythic","pop",12),mk("n_rose","🥀","1f940","Eternal Rose",19000,"legendary","pop",24),
- mk("n_sakura","🌸","1f338","Sakura Bloom",4200,"epic","pop",85),mk("n_bunny","🐰","1f430","Jelly Bunny",3300,"epic","pop",100),
- mk("n_wand","🪄","1fa84","Magic Wand",8200,"legendary","pop",45),mk("n_peach","🍑","1f351","Golden Peach",21000,"legendary","pop",22),
- mk("n_cap","🧢","1f9e2","Royal Cap",45000,"mythic","pop",6),mk("n_helm","🪖","1fa96","Heroic Helmet",32000,"mythic","pop",10),
- mk("n_hexpot","🍲","1f372","Hex Pot",7800,"legendary","pop",42),mk("n_homecake","🍰","1f370","Homemade Cake",3400,"epic","pop",95),
- mk("n_wine","🍷","1f377","Spiced Wine",5400,"epic","pop",68),mk("n_santa","🎅","1f385","Santa Hat",3000,"epic","pop",120),
- mk("n_skullflower","☠️","2620_fe0f","Skull Flower",13500,"legendary","pop",30),mk("n_signet","💍","1f48d","Signet Ring",10500,"legendary","pop",36),
- mk("n_cigar","🚬","1f6ac","Vintage Cigar",6800,"epic","pop",58),mk("n_kissfrog","💋","1f48b","Kissed Frog",4800,"epic","pop",75));
+const NFT=[mk("n_frog","🐸","1f438","Frog Plush",9500,"legendary","pop",40),mk("n_cap","🧢","1f9e2","Royal Cap",45000,"mythic","pop",6),mk("n_peach","🍑","1f351","Golden Peach",21000,"legendary","pop",22),mk("n_shard","💠","1f4a0","Astral Shard",24000,"mythic","pop",14),mk("n_hexpot","🍲","1f372","Hex Pot",7800,"legendary","pop",42),
+ mk("n_homecake","🍰","1f370","Homemade Cake",3400,"epic","pop",95),mk("n_bunny","🐰","1f430","Jelly Bunny",3300,"epic","pop",100),mk("n_wine","🍷","1f377","Spiced Wine",5400,"epic","pop",68),mk("n_santa","🎅","1f385","Santa Hat",3000,"epic","pop",120),mk("n_orb","🔮","1f52e","Oracle Orb",4000,"epic","pop",75),
+ mk("n_skullflower","☠️","2620_fe0f","Skull Flower",13500,"legendary","pop",30),mk("n_signet","💍","1f48d","Signet Ring",10500,"legendary","pop",36),mk("n_cigar","🚬","1f6ac","Vintage Cigar",6800,"epic","pop",58),mk("n_potion","🧪","1f9ea","Magic Potion",3800,"epic","pop",90),mk("n_kissfrog","💋","1f48b","Kissed Frog",4800,"epic","pop",75)];
 const ALL=[...REG,...NFT];
 const gf=k=>ALL.find(x=>x.id===k)||ALL[0];
+const has=k=>ALL.some(x=>x.id===k);
+
+// Lottie player (lottie-web). Set URLs in LOT at the top of the file; falls back to the SVG art / emoji if loading fails.
+const Lot=({url,size,onFail})=>{const r=useRef(null);useEffect(()=>{if(!window.lottie||!r.current){onFail();return}const a=window.lottie.loadAnimation({container:r.current,renderer:"svg",loop:true,autoplay:true,path:url});a.addEventListener("data_failed",onFail);return()=>a.destroy()},[url]);return <div ref={r} style={{width:size,height:size}}/>};
+// Lighting filter: specular bevel + soft drop shadow for a glossy, 3D look (used on larger sizes)
+const LIT=(<filter id="lit" x="-15%" y="-15%" width="130%" height="135%"><feGaussianBlur in="SourceAlpha" stdDeviation="2" result="b"/><feSpecularLighting in="b" surfaceScale="5" specularConstant=".85" specularExponent="24" lightingColor="#fff" result="sp"><fePointLight x="22" y="-8" z="75"/></feSpecularLighting><feComposite in="sp" in2="SourceAlpha" operator="in" result="s2"/><feComposite in="SourceGraphic" in2="s2" operator="arithmetic" k1="0" k2="1" k3=".7" k4="0" result="lit"/><feDropShadow in="lit" dx="0" dy="2.5" stdDeviation="2.5" floodColor="#000" floodOpacity=".3"/></filter>);
 // ---- Original vector artwork (glossy, lightly animated) for selected NFT gifts ----
 const D=(id,a,b,r)=>r?<radialGradient id={id} cx=".4" cy=".35" r=".8"><stop offset="0" stopColor={a}/><stop offset="1" stopColor={b}/></radialGradient>:<linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={a}/><stop offset="1" stopColor={b}/></linearGradient>;
 const st=(c,w=3)=>({stroke:c,strokeWidth:w,strokeLinecap:"round",fill:"none"});
@@ -142,7 +141,7 @@ const ART={
  n_signet:()=><g className="fl"><defs>{D("gd","#fde68a","#b45309")}{D("gm","#fca5a5","#b91c1c",1)}</defs><ellipse cx="50" cy="62" rx="26" ry="28" fill="none" stroke="url(#gd)" strokeWidth="10"/><path d="M30 28L50 14L70 28L70 48L50 56L30 48Z" fill="url(#gd)" stroke="#92400e" strokeWidth="2"/><path d="M36 30L50 21L64 30L64 44L50 50L36 44Z" fill="url(#gm)"/><path d="M50 26L52.6 32H58L53.6 36L55.2 42L50 38.4L44.8 42L46.4 36L42 32H47.4Z" fill="#fff" opacity=".8"/><Sp x={78} y={24} d={.4}/><Hi x={34} y={74} rx={3} ry={12} r={10} o={.4}/></g>,
  n_cigar:()=><g className="fl"><defs>{D("cg","#a16207","#451a03")}</defs><rect x="12" y="56" width="68" height="16" rx="8" transform="rotate(-18 46 64)" fill="url(#cg)"/><rect x="48" y="52" width="10" height="18" transform="rotate(-18 46 64)" fill="#dc2626"/><rect x="50" y="52" width="2" height="18" transform="rotate(-18 46 64)" fill="#fbbf24"/><circle cx="80" cy="44" r="7" fill="#9ca3af"/><circle className="pu" cx="80" cy="44" r="4" fill="#fb923c"/><path className="ri" d="M84 34Q76 24 86 16Q92 10 84 4" {...st("#e5e7eb",3)}/><Hi x={34} y={64} rx={14} ry={2.5} r={-18} o={.35}/></g>,
  n_potion:()=><g className="fl"><defs>{D("po","#d8b4fe","#7e22ce")}</defs><path d="M42 14H58V32Q82 40 82 66Q82 90 50 90Q18 90 18 66Q18 40 42 32Z" fill="#e0f2fe" opacity=".4" stroke="#bae6fd" strokeWidth="2"/><path d="M22 62Q22 86 50 86Q78 86 78 62Q60 54 50 62Q38 70 22 62Z" fill="url(#po)"/><rect x="40" y="8" width="20" height="9" rx="3" fill="#b45309"/><circle className="ri" cx="40" cy="70" r="3" fill="#f5d0fe"/><circle className="ri" style={{animationDelay:"1s"}} cx="58" cy="74" r="4" fill="#f5d0fe"/><Hi x={30} y={56} rx={4} ry={12} r={15} o={.5}/><Sp x={80} y={22} d={.5}/><Sp x={16} y={40} s={4} d={1}/></g>};
-const GImg=({g,size=48})=>{const [bad,setBad]=useState(false),A=ART[g.id];if(A&&!IMG[g.id])return <svg viewBox="0 0 100 100" width={size} height={size} style={{overflow:"visible"}}>{A()}</svg>;return bad?<span style={{fontSize:size*.85,lineHeight:1}}>{g.e}</span>:<img src={IMG[g.id]||`https://fonts.gstatic.com/s/e/notoemoji/latest/${g.cp}/512.gif`} width={size} height={size} alt={g.n} draggable={false} onError={()=>setBad(true)}/>};
+const GImg=({g,size=48})=>{const [bad,setBad]=useState(false),A=ART[g.id];if(LOT[g.id]&&!bad)return <Lot url={LOT[g.id]} size={size} onFail={()=>setBad(true)}/>;if(A&&!IMG[g.id])return <svg className="gsv" viewBox="0 0 100 100" width={size} height={size} style={{overflow:"visible"}}>{size>=56&&<><defs>{LIT}</defs><ellipse className="shd" cx="50" cy="97" rx="30" ry="4" fill="#000" opacity=".3"/></>}<g filter={size>=56?"url(#lit)":undefined}>{A()}</g></svg>;return bad?<span style={{fontSize:size*.85,lineHeight:1}}>{g.e}</span>:<img src={IMG[g.id]||`https://fonts.gstatic.com/s/e/notoemoji/latest/${g.cp}/512.gif`} width={size} height={size} alt={g.n} draggable={false} onError={()=>setBad(true)}/>};
 const THEMES={
   light:{"--bg":"#edeef0","--panel":"#fff","--text":"#1f2937","--muted":"#6b7280","--line":"#e5e7eb","--rail":"#222b38","--chat":"#dde6ef","--input":"#f0f2f5","--hover":"#f1f3f5","--in":"#fff"},
   dark:{"--bg":"#0a0a0b","--panel":"#111113","--text":"#e6e6e6","--muted":"#7a7f87","--line":"#23252a","--rail":"#050506","--chat":"#0a0a0b","--input":"#1a1b1e","--hover":"#18191c","--in":"#18191c"},
@@ -172,7 +171,7 @@ const beep=()=>{try{const A=new (window.AudioContext||window.webkitAudioContext)
 const DL=(navigator.language||"").startsWith("ru")?"ru":"en";
 const PD={theme:"dark",acc:"Blue",wall:"none",lang:DL,bs:"glass",fs:15,rad:22,dens:"cozy",ts:true,rc:true,ent:true,snd:false,h12:false,anim:true,blur:24,font:"system"};
 const loadPrefs=()=>{try{return{...PD,...JSON.parse(localStorage.getItem(PK))}}catch{return{...PD}}};
-const L={ru:{"Message style": "Стиль сообщений", "Glass": "Стекло", "Ghost": "Контур", "Solid": "Сплошной","START": "СТАРТ", "Add bot": "Добавить бота", "Bot not found": "Бот не найден", "Remove": "Убрать", "Bots in this chat": "Боты в этом чате", "Webhook URL (optional)": "Webhook URL (необязательно)", "Commands (one per line: command - description)": "Команды (по строке: команда - описание)", "To create a bot, open BotFather in the Bots list and send /newbot": "Чтобы создать бота, откройте BotFather в разделе «Боты» и отправьте /newbot","Group": "Группа", "Channel": "Канал", "Bot": "Бот", "Create": "Создать", "Name": "Название", "Description": "Описание", "Members": "Участники", "Subscribers": "Подписчики", "owner": "владелец", "Join": "Вступить", "Leave": "Выйти", "Delete": "Удалить", "Save": "Сохранить", "People": "Люди", "Groups & Channels": "Группы и каналы", "Bots": "Боты", "Only the owner can post": "Писать может только владелец", "Join to write": "Вступить, чтобы писать", "Sell": "Продать", "Sold": "Продано", "Sale expired": "Срок продажи истёк", "Bot replies (one per line: trigger => reply)": "Ответы бота (по строке: триггер => ответ)", "You can sell a gift within 3 days of getting it for 80% of its price": "Подарок можно продать в течение 3 дней после получения за 80% цены","Ocean": "Океан", "Forest": "Лес", "Sunset": "Закат", "Rose": "Роза", "Nord": "Нордик", "Mocha": "Мокка", "Sky (Light)": "Небо (светлая)", "lines": "Линии", "checks": "Клетка", "stars": "Звёзды", "aurora": "Аврора", "Chat": "Чат", "Privacy": "Приватность", "Text size": "Размер текста", "Bubble corners": "Скругление пузырей", "Spacing": "Интервал", "Compact": "Плотно", "Cozy": "Обычно", "Roomy": "Свободно", "Font": "Шрифт", "System": "Системный", "Serif": "С засечками", "Mono": "Моно", "Rounded": "Округлый", "Show time": "Показывать время", "Read receipts": "Отметки прочтения", "Enter sends message": "Enter отправляет", "Message sound": "Звук сообщений", "12-hour clock": "12-часовой формат", "Gift animations": "Анимации подарков", "Glass blur": "Размытие стекла", "Custom color": "Свой цвет", "Hide last seen": "Скрыть время захода", "Others will see last seen recently": "Другие увидят «был(а) недавно»", "last seen recently": "был(а) недавно", "Reset display settings": "Сбросить настройки вида", "Preview": "Превью", "Hi! How's it going?": "Привет! Как дела?", "All good, thanks!": "Всё отлично, спасибо!","Profile":"Профиль","Theme":"Тема","Accent color":"Цвет акцента","Wallpaper":"Обои","Balance":"Баланс","Account settings": "Настройки аккаунта", "Chats": "Чаты", "Users": "Люди", "Settings": "Настройки", "Admin": "Админ", "Search": "Поиск", "No users found.": "Никого не найдено.", "No chats yet. Open Users to start one.": "Чатов пока нет. Откройте «Люди», чтобы начать.", "Select a chat to start messaging": "Выберите чат, чтобы начать общение", "online": "в сети", "last seen ": "был(а) ", "No messages yet. Say hi!": "Сообщений пока нет. Поздоровайтесь!", "Write a message…": "Напишите сообщение…", "You are banned from sending messages.": "Вам запрещено отправлять сообщения.", "You": "Вы", "You sent": "Вы отправили", "sent you": "отправил(а) вам", "Announcement:": "Объявление:", "limited": "лимит", "Upload photo": "Загрузить фото", "Remove photo": "Удалить фото", "Display name": "Имя", "Bio": "О себе", "Save changes": "Сохранить", "Saved": "Сохранено", "Wallet": "Кошелёк", "Claim": "Получить", "coins": "монет", "Next bonus in ": "Следующий бонус через ", "h": "ч", "Appearance": "Оформление", "Language": "Язык", "Log out": "Выйти", "Light (VK Clean)": "Светлая", "Dark (Strict)": "Тёмная", "Midnight Blue": "Полночный синий", "AMOLED Black": "AMOLED чёрная", "No wallpaper": "Без обоев", "dots": "Точки", "grid": "Сетка", "waves": "Волны", "Username": "Имя пользователя", "No bio yet": "Пока пусто", "Registered": "Регистрация", "Gifts showcase": "Витрина подарков", "No gifts yet.": "Подарков пока нет.", "Send message": "Написать", "Send gift": "Подарить", "Gift for": "Подарок для", "Gifts": "Подарки", "NFT · Limited": "NFT · Лимит", "Add a message (optional)": "Добавьте сообщение (необязательно)", "Balance after:": "Баланс после:", "Sold out": "Распродано", "Not enough coins": "Не хватает монет", "Send": "Отправить", "for": "за", "left": "осталось", "Sign in with your phone number": "Вход по номеру телефона", "Send SMS code": "Отправить SMS-код", "Sending…": "Отправка…", "Admin quick login": "Быстрый вход админа", "Enter the 6-digit code sent to": "Введите 6-значный код, отправленный на", "Verify and continue": "Подтвердить", "Checking…": "Проверка…", "Use a different number": "Другой номер", "Set up your profile": "Настройте профиль", "Bio (optional)": "О себе (необязательно)", "Create profile": "Создать профиль", "Cancel and sign out": "Отмена и выход"}};
+const L={ru:{"Install app": "Установить приложение", "On iPhone: tap Share, then Add to Home Screen": "На iPhone: нажмите «Поделиться», затем «На экран Домой»", "open the browser menu and choose Install app": "откройте меню браузера и выберите «Установить приложение»","Message style": "Стиль сообщений", "Glass": "Стекло", "Ghost": "Контур", "Solid": "Сплошной","START": "СТАРТ", "Add bot": "Добавить бота", "Bot not found": "Бот не найден", "Remove": "Убрать", "Bots in this chat": "Боты в этом чате", "Webhook URL (optional)": "Webhook URL (необязательно)", "Commands (one per line: command - description)": "Команды (по строке: команда - описание)", "To create a bot, open BotFather in the Bots list and send /newbot": "Чтобы создать бота, откройте BotFather в разделе «Боты» и отправьте /newbot","Group": "Группа", "Channel": "Канал", "Bot": "Бот", "Create": "Создать", "Name": "Название", "Description": "Описание", "Members": "Участники", "Subscribers": "Подписчики", "owner": "владелец", "Join": "Вступить", "Leave": "Выйти", "Delete": "Удалить", "Save": "Сохранить", "People": "Люди", "Groups & Channels": "Группы и каналы", "Bots": "Боты", "Only the owner can post": "Писать может только владелец", "Join to write": "Вступить, чтобы писать", "Sell": "Продать", "Sold": "Продано", "Sale expired": "Срок продажи истёк", "Bot replies (one per line: trigger => reply)": "Ответы бота (по строке: триггер => ответ)", "You can sell a gift within 3 days of getting it for 80% of its price": "Подарок можно продать в течение 3 дней после получения за 80% цены","Ocean": "Океан", "Forest": "Лес", "Sunset": "Закат", "Rose": "Роза", "Nord": "Нордик", "Mocha": "Мокка", "Sky (Light)": "Небо (светлая)", "lines": "Линии", "checks": "Клетка", "stars": "Звёзды", "aurora": "Аврора", "Chat": "Чат", "Privacy": "Приватность", "Text size": "Размер текста", "Bubble corners": "Скругление пузырей", "Spacing": "Интервал", "Compact": "Плотно", "Cozy": "Обычно", "Roomy": "Свободно", "Font": "Шрифт", "System": "Системный", "Serif": "С засечками", "Mono": "Моно", "Rounded": "Округлый", "Show time": "Показывать время", "Read receipts": "Отметки прочтения", "Enter sends message": "Enter отправляет", "Message sound": "Звук сообщений", "12-hour clock": "12-часовой формат", "Gift animations": "Анимации подарков", "Glass blur": "Размытие стекла", "Custom color": "Свой цвет", "Hide last seen": "Скрыть время захода", "Others will see last seen recently": "Другие увидят «был(а) недавно»", "last seen recently": "был(а) недавно", "Reset display settings": "Сбросить настройки вида", "Preview": "Превью", "Hi! How's it going?": "Привет! Как дела?", "All good, thanks!": "Всё отлично, спасибо!","Profile":"Профиль","Theme":"Тема","Accent color":"Цвет акцента","Wallpaper":"Обои","Balance":"Баланс","Account settings": "Настройки аккаунта", "Chats": "Чаты", "Users": "Люди", "Settings": "Настройки", "Admin": "Админ", "Search": "Поиск", "No users found.": "Никого не найдено.", "No chats yet. Open Users to start one.": "Чатов пока нет. Откройте «Люди», чтобы начать.", "Select a chat to start messaging": "Выберите чат, чтобы начать общение", "online": "в сети", "last seen ": "был(а) ", "No messages yet. Say hi!": "Сообщений пока нет. Поздоровайтесь!", "Write a message…": "Напишите сообщение…", "You are banned from sending messages.": "Вам запрещено отправлять сообщения.", "You": "Вы", "You sent": "Вы отправили", "sent you": "отправил(а) вам", "Announcement:": "Объявление:", "limited": "лимит", "Upload photo": "Загрузить фото", "Remove photo": "Удалить фото", "Display name": "Имя", "Bio": "О себе", "Save changes": "Сохранить", "Saved": "Сохранено", "Wallet": "Кошелёк", "Claim": "Получить", "coins": "монет", "Next bonus in ": "Следующий бонус через ", "h": "ч", "Appearance": "Оформление", "Language": "Язык", "Log out": "Выйти", "Light (VK Clean)": "Светлая", "Dark (Strict)": "Тёмная", "Midnight Blue": "Полночный синий", "AMOLED Black": "AMOLED чёрная", "No wallpaper": "Без обоев", "dots": "Точки", "grid": "Сетка", "waves": "Волны", "Username": "Имя пользователя", "No bio yet": "Пока пусто", "Registered": "Регистрация", "Gifts showcase": "Витрина подарков", "No gifts yet.": "Подарков пока нет.", "Send message": "Написать", "Send gift": "Подарить", "Gift for": "Подарок для", "Gifts": "Подарки", "NFT · Limited": "NFT · Лимит", "Add a message (optional)": "Добавьте сообщение (необязательно)", "Balance after:": "Баланс после:", "Sold out": "Распродано", "Not enough coins": "Не хватает монет", "Send": "Отправить", "for": "за", "left": "осталось", "Sign in with your phone number": "Вход по номеру телефона", "Send SMS code": "Отправить SMS-код", "Sending…": "Отправка…", "Admin quick login": "Быстрый вход админа", "Enter the 6-digit code sent to": "Введите 6-значный код, отправленный на", "Verify and continue": "Подтвердить", "Checking…": "Проверка…", "Use a different number": "Другой номер", "Set up your profile": "Настройте профиль", "Bio (optional)": "О себе (необязательно)", "Create profile": "Создать профиль", "Cancel and sign out": "Отмена и выход"}};
 let LANG="en",H12=false;
 const tr=k=>(L[LANG]&&L[LANG][k])||k;
 const resize=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const S=192,c=document.createElement("canvas");c.width=c.height=S;const m=Math.min(im.width,im.height);c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);res(c.toDataURL("image/jpeg",.82))};im.onerror=()=>rej(new Error("Not an image"));im.src=r.result};r.onerror=rej;r.readAsDataURL(file)});
@@ -183,7 +182,7 @@ const time=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"
 const seen=t=>new Date(t).toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",hourCycle:H12?"h12":"h23"});
 const online=(u,now)=>!u.hide&&now-(u.lastSeen||0)<ONLINE_MS;
 const status=(u,now)=>online(u,now)?tr("online"):u.hide?tr("last seen recently"):tr("last seen ")+seen(u.lastSeen||u.createdAt);
-const prev=m=>m.type==="gift"?"🎁 "+gf(m.gift).n:m.text;
+const prev=m=>m.type==="gift"?"🎁 "+(has(m.gift)?gf(m.gift).n:"Gift"):m.text;
 const B="acb rounded-xl px-4 py-2 font-semibold disabled:opacity-50";
 // Every user doc gets a defined id/uid (old docs without a uid field fall back to their document ID)
 const fixU=d=>({...d.data(),id:d.id,uid:d.data().uid||d.id});
@@ -313,7 +312,7 @@ async function sellGift(me,x){
 
 function Profile({u,me,now,onClose,onChat,onGift}){
   const own=u.uid===me.uid,[note,setNote]=useState("");
-  const gs=(u.gifts||[]).slice().sort((a,b)=>(gf(b.g).max?1:0)-(gf(a.g).max?1:0)||b.ts-a.ts);
+  const gs=(u.gifts||[]).filter(x=>has(x.g)).sort((a,b)=>(gf(b.g).max?1:0)-(gf(a.g).max?1:0)||b.ts-a.ts);
   const row=(l,v)=><div className="flex justify-between gap-3 py-2 border-b bl text-sm"><span className="mu">{l}</span><span className="text-right">{v}</span></div>;
   const sell=async x=>{const g=gf(x.g),p=Math.floor(g.c*SELL);if(!confirm(`${tr("Sell")} ${g.n}: +${p}?`))return;try{await sellGift(me,x);setNote(`${tr("Sold")} ${g.n}: +${p}`)}catch(e){setNote(e.message)}};
   return(
@@ -405,7 +404,7 @@ Object.assign(INTRO,{
 const PT={heart:["❤️","up",14],star:["✨","burst",16],choco:["🍫","fall",10],fire:["🔥","up",12],rose:["🌹","fall",12],party:["🎊","burst",20],cake:["✨","up",10],teddy:["💛","burst",10],champ:["🫧","up",16],rocket:["💨","burst",12,0,220],trophy:["⭐","fall",12],diamond:["✨","burst",18],ring:["💫","burst",12],crown:["⭐","burst",14],car:["💨","burst",12,-280,0],cash:["🪙","fall",16],n_skull:["☠️","burst",8],n_orb:["✨","up",14],n_eagle:["🪶","fall",12],n_dragon:["🔥","burst",14,260,0],n_galaxy:["⭐","burst",24],n_comet:["☄️","burst",10,-260,200]};
 Object.assign(PT,{n_ghost:["👻","up",8],n_alien:["👽","burst",8],n_robot:["⚙️","burst",12],n_katana:["✨","burst",14,300,0],n_wolf:["🐾","fall",10],n_owl:["🪶","fall",12],n_lion:["🔥","burst",14],n_bolt:["⚡","burst",16],n_tiger:["🐾","burst",10,-280,0],n_saturn:["✨","up",14],n_moon:["⭐","fall",14],n_sun:["☀️","burst",18]});
 const TPL=[K("scale(.2)","scale(1.5)","scale(.9)","scale(1.15)","scale(1)"),K("rotate(-360deg) scale(.2)","rotate(15deg) scale(1.3)","scale(1)"),K("translateY(-70vh)","translateY(0) scale(1.2,.8)","translateY(-50px)","scale(1)"),K("translateX(70vw) rotate(30deg)","translateX(-20px) rotate(-8deg) scale(1.2)","scale(1)"),K(["scale(.3)","brightness(3)"],["scale(1.4)","brightness(1.6)"],["scale(1)","none"]),K("translateY(60vh) scale(.5)","translateY(-24px) scale(1.2)","translateY(6px)","scale(1)"),K("rotate(720deg) scale(.1)","rotate(0) scale(1.4)","scale(1)"),K([P6+"rotateY(0) scale(.4)"],[P6+"rotateY(540deg) scale(1.3)","brightness(1.8)"],[P6+"rotateY(720deg) scale(1)","none"]),K(["translate(-60vw,30vh) scale(.5)","hue-rotate(0)"],["translate(4vw,-6vh) scale(1.3)","hue-rotate(160deg)"],["scale(1)","none"]),K("scale(.6) rotate(-8deg)","translateX(-14px) rotate(6deg)","translateX(14px) rotate(-6deg)","scale(1.2)","scale(1)")];
-NFT.slice(18).forEach((x,i)=>{INTRO[x.id]=TPL[i%TPL.length];PT[x.id]=[i%2?x.e:"✨",["burst","up","fall"][i%3],10+i%6]});
+NFT.filter(x=>!INTRO[x.id]).forEach((x,i)=>{INTRO[x.id]=TPL[i%TPL.length];PT[x.id]=[i%2?x.e:"✨",["burst","up","fall"][i%3],10+i%6]});
 const CONF=["#f43f5e","#f59e0b","#22c55e","#3b82f6","#a855f7","#fde047","#ffffff"];
 const tgt=()=>{const W=innerWidth,H=innerHeight;return[W>=768?(332+W)/2:W/2,H*.62]};
 
@@ -443,7 +442,8 @@ const Seg=({opts,v,set})=>(
 
 function Prefs({me,logout,prefs,save}){
   const [sec,setSec]=useState("profile"),[f,setF]=useState({name:me.name,bio:me.bio||"",emoji:me.emoji,color:me.color}),[ok,setOk]=useState(false),[perr,setPerr]=useState("");
-  const fileRef=useRef(null),ref=doc(db,"users",me.uid);
+  const fileRef=useRef(null),ref=doc(db,"users",me.uid),[ip,setIp]=useState(!!window.__ip);
+  useEffect(()=>{const f=()=>setIp(!!window.__ip);window.addEventListener("ipready",f);return()=>window.removeEventListener("ipready",f)},[]);
   const set=p=>{setOk(false);setF(o=>({...o,...p}))},P=(k,v)=>save({...prefs,[k]:v});
   const left=864e5-(Date.now()-(me.lastBonus||0)),ready=left<=0;
   const sv=async()=>{if(!f.name.trim())return;await updateDoc(ref,{name:f.name.trim(),bio:f.bio.trim(),emoji:f.emoji,color:f.color});setOk(true)};
@@ -522,6 +522,10 @@ function Prefs({me,logout,prefs,save}){
         <div className="text-5xl font-bold flex items-center justify-center gap-2"><Coins className="act" size={34}/>{me.coins||0}</div>
         <button disabled={!ready} onClick={claim} className={B}>{ready?`${tr("Claim")} ${BONUS} ${tr("coins")}`:`${tr("Next bonus in ")}${Math.ceil(left/36e5)}${tr("h")}`}</button></div>}
 
+      <div className="pn rounded-3xl p-4 text-center space-y-2">
+        {ip?<button onClick={async()=>{const e=window.__ip;if(!e)return;e.prompt();await e.userChoice;window.__ip=null;setIp(false)}} className={B+" w-full"}>{tr("Install app")}</button>
+          :<p className="text-sm mu">{/iphone|ipad/i.test(navigator.userAgent)&&!navigator.standalone?tr("On iPhone: tap Share, then Add to Home Screen"):tr("Install app")+": "+tr("open the browser menu and choose Install app")}</p>}
+      </div>
       <button onClick={logout} className="w-full pn rounded-full py-3 text-red-500 font-semibold flex items-center justify-center gap-2"><LogOut size={16}/>{tr("Log out")}</button>
     </div></div>);
 }
@@ -896,7 +900,7 @@ function Messenger({me,users,logout,prefs,save}){
           </header>
           <div className="flex-1 overflow-y-auto p-3 md:p-5 flex flex-col" style={{gap:"var(--gap)",backgroundImage:WALLS[prefs.wall],backgroundSize:WSIZE[prefs.wall]||"auto"}}>
             {thread.length===0&&<p className="text-center text-sm mu mt-6">{tr("No messages yet. Say hi!")}</p>}
-            {thread.map(m=>{const mine=m.from===me.uid,g=gf(m.gift);return m.type==="gift"?(
+            {thread.map(m=>{if(m.type==="gift"&&!has(m.gift))return null;const mine=m.from===me.uid,g=gf(m.gift);return m.type==="gift"?(
               <GiftCard key={m.id} m={m} g={g} mine={mine} users={users} prefs={prefs}/>):(
               <div key={m.id} className={`flex ${mine?"justify-end":"justify-start"}`}>
                 <div className={`max-w-[80%] px-3.5 py-2 ${mine?"out":"tx inb"}`} style={{fontSize:"var(--fs)",borderRadius:"var(--br)"}}>
@@ -916,7 +920,7 @@ function Messenger({me,users,logout,prefs,save}){
         </>)}
       </main>
 
-      <nav className={`${inChat?"hidden md:flex":"flex"} pn fixed z-30 bottom-3 left-3 right-3 md:right-auto md:left-6 md:bottom-6 md:w-[296px] rounded-full p-1.5 gap-1`}>
+      <nav className={`${inChat?"hidden md:flex":"flex"} pn dock fixed z-30 bottom-3 left-3 right-3 md:right-auto md:left-6 md:bottom-6 md:w-[296px] rounded-full p-1.5 gap-1`}>
         {nav("chats",MessageCircle,tr("Chats"),unreadAll)}{nav("users",Users,tr("Users"))}{nav("settings",Settings,tr("Settings"))}{admin&&nav("admin",Shield,tr("Admin"))}
       </nav>
 
@@ -948,6 +952,8 @@ function App(){
   return wrap(<Messenger me={me} users={users} logout={logout} prefs={prefs} save={save}/>);
 }
 
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();window.__ip=e;window.dispatchEvent(new Event("ipready"))});
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 createRoot(document.getElementById("root")).render(configured?<App/>:<Setup/>);
 </script>
 </body>
