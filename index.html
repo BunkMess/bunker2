@@ -108,13 +108,76 @@ const REG=[mk("heart","❤️","2764_fe0f","Heart",50,"common","up"),mk("star","
  mk("teddy","🧸","1f9f8","Teddy Bear",70,"rare"),mk("champ","🍾","1f37e","Champagne",75,"rare"),mk("rocket","🚀","1f680","Rocket",80,"rare","fly"),mk("trophy","🏆","1f3c6","Trophy",80,"rare"),
  mk("diamond","💎","1f48e","Diamond",90,"epic"),mk("ring","💍","1f48d","Ring",90,"epic"),mk("crown","👑","1f451","Crown",95,"epic"),mk("car","🏎️","1f3ce_fe0f","Race Car",100,"legendary","fly"),mk("cash","💰","1f4b0","Money Bag",100,"legendary")];
 // NFT = limited supply (max copies ever). Serial numbers are minted in Firestore collection "nft".
-const EXTRA_NFT=[["plushpepe","🐸","Plush Pepe",50000,"mythic",5],["durovscap","🧢","Durov's Cap",45000,"mythic",6],["preciousp"pop",6),mk("n_peach","🍑","1f351","Golden Peach",21000,"legendary","pop",22),mk("n_shard","💠","1f4a0","Astral Shard",24000,"mythic","pop",14),mk("n_hexpot","🍲","1f372","Hex Pot",7800,"legendary","pop",42),
- mk("n_homecake","🍰","1f370","Homemade Cake",3400,"epic","pop",95),mk("n_bunny","🐰","1f430","Jelly Bunny",3300,"epic","pop",100),mk("n_wine","🍷","1f377","Spiced Wine",5400,"epic","pop",68),mk("n_santa","🎅","1f385","Santa Hat",3000,"epic","pop",120),mk("n_orb","🔮","1f52e","Oracle Orb",4000,"epic","pop",75),
- mk("n_skullflower","☠️","2620_fe0f","Skull Flower",13500,"legendary","pop",30),mk("n_signet","💍","1f48d","Signet Ring",10500,"legendary","pop",36),mk("n_cigar","🚬","1f6ac","Vintage Cigar",6800,"epic","pop",58),mk("n_potion","🧪","1f9ea","Magic Potion",3800,"epic","pop",90),mk("n_kissfrog","💋","1f48b","Kissed Frog",4800,"epic","pop",75)];
+const EXTRA_NFT=[
+  ["plushpepe","🐸","Plush Pepe",50000,"mythic",5],
+  ["durovscap","🧢","Durov's Cap",45000,"mythic",6],
+  ["preciouspeach","🍑","Precious Peach",35000,"mythic",10],
+  ["astralshard","💠","Astral Shard",28000,"mythic",12],
+  ["iongem","💎","Ion Gem",25000,"mythic",15],
+  ["perfumebottle","🧴","Perfume Bottle",22000,"legendary",18],
+  ["minioscar","🏆","Mini Oscar",20000,"legendary",20],
+  ["magicpotion","🧪","Magic Potion",18000,"legendary",22],
+  ["lootbag","💰","Loot Bag",16000,"legendary",25],
+  ["genielamp","🪔","Genie Lamp",15000,"legendary",28],
+  ["scaredcat","🐱","Scared Cat",14500,"legendary",30],
+  ["resistancedog","🐶","Resistance Dog",14000,"legendary",30],
+  ["swisswatch","⌚","Swiss Watch",13500,"legendary",32],
+  ["skullflower","☠️","Skull Flower",13000,"legendary",35],
+  ["signetring","💍","Signet Ring",11000,"legendary",36],
+  ["hexpot","🍲","Hex Pot",9500,"legendary",40],
+  ["snoopdogg","🐕","Snoop Dogg",9000,"legendary",45],
+  ["vintagecigar","🚬","Vintage Cigar",8000,"epic",50],
+  ["kissedfrog","💋","Kissed Frog",7500,"epic",55],
+  ["voodoodoll","🪆","Voodoo Doll",7000,"epic",60],
+  ["toybear","🧸","Toy Bear",6500,"epic",65],
+  ["spicedwine","🍷","Spiced Wine",6000,"epic",68],
+  ["crystalball","🔮","Crystal Ball",5500,"epic",75],
+  ["homemadecake","🍰","Homemade Cake",5000,"epic",80],
+  ["jellybunny","🐰","Jelly Bunny",4800,"epic",85],
+  ["santahat","🎅","Santa Hat",4500,"epic",90],
+  ["witchhat","🧙","Witch Hat",4200,"epic",95],
+  ["tophat","🎩","Top Hat",4000,"epic",100],
+  ["snowglobe","🔮","Snow Globe",3800,"epic",105],
+  ["recordplayer","📻","Record Player",3600,"epic",110],
+  ["sakuraflower","🌸","Sakura Flower",3500,"rare",115],
+  ["sandcastle","🏰","Sandcastle",3400,"rare",120],
+  ["timelessbook","📖","Timeless Book",3300,"rare",125],
+  ["trojanhorse","🐴","Trojan Horse",3200,"rare",130],
+  ["victorymedal","🥇","Victory Medal",3100,"rare",135],
+  ["tamagadget","👾","Tama Gadget",3000,"rare",140],
+  ["surfboard","🏄","Surfboard",2900,"rare",145],
+  ["starnotepad","🗒️","Star Notepad",2800,"rare",150],
+  ["stellarrocket","🚀","Stellar Rocket",2700,"rare",155],
+  ["lolpop","🍭","Lol Pop",2500,"rare",160],
+  ["icecream","🍦","Ice Cream",2400,"rare",170],
+  ["easteregg","🥚","Easter Egg",2300,"rare",180],
+  ["candycane","🍬","Candy Cane",2200,"rare",190],
+  ["bdaycandle","🕯️","B-Day Candle",2000,"rare",200]
+];
+const NFT=[
+  ...EXTRA_NFT.map(([slug,e,n,c,r,max])=>mk("n_"+slug,e,"1f381",n,c,r,"pop",max)),
+  mk("n_frog","🐸","1f438","Frog Plush",9500,"legendary","pop",40),
+  mk("n_cap","🧢","1f9e2","Royal Cap",45000,"mythic","pop",6),
+  mk("n_peach","🍑","1f351","Golden Peach",21000,"legendary","pop",22),
+  mk("n_shard","💠","1f4a0","Astral Shard",24000,"mythic","pop",14),
+  mk("n_hexpot","🍲","1f372","Hex Pot",7800,"legendary","pop",42),
+  mk("n_homecake","🍰","1f370","Homemade Cake",3400,"epic","pop",95),
+  mk("n_bunny","🐰","1f430","Jelly Bunny",3300,"epic","pop",100),
+  mk("n_wine","🍷","1f377","Spiced Wine",5400,"epic","pop",68),
+  mk("n_santa","🎅","1f385","Santa Hat",3000,"epic","pop",120),
+  mk("n_orb","🔮","1f52e","Oracle Orb",4000,"epic","pop",75),
+  mk("n_skullflower","☠️","2620_fe0f","Skull Flower",13500,"legendary","pop",30),
+  mk("n_signet","💍","1f48d","Signet Ring",10500,"legendary","pop",36),
+  mk("n_cigar","🚬","1f6ac","Vintage Cigar",6800,"epic","pop",58),
+  mk("n_potion","🧪","1f9ea","Magic Potion",3800,"epic","pop",90),
+  mk("n_kissfrog","💋","1f48b","Kissed Frog",4800,"epic","pop",75)
+];
 const ALL=[...REG,...NFT];
 EXTRA_NFT.forEach(([slug])=>{
   IMG["n_"+slug]=`https://fragment.com{slug}-1.webp`;
   LOT["n_"+slug]=`https://fragment.com{slug}-1.lottie.json`;
+});
+
 });
 const gf=k=>ALL.find(x=>x.id===k)||ALL[0];
 const has=k=>ALL.some(x=>x.id===k);
