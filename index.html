@@ -610,7 +610,7 @@ function Admin({me,users,stats,ann,now}){
 
       {t==="eco"&&<div className="space-y-3">
         <div className={card}><div className="font-semibold">Send a free gift</div>
-          <select className="inp" value={target?.uid||""} onChange={e=>setTo(e.target.value)}>{users.filter(u=>idOf(u)!==idOf(me)).map(u=><option key={idOf(u)} value={idOf(u)}>{u.name} (@{u.username})</option>)}</select>
+          <select className="inp" value={target?.uid||""} onChange={e=>setTo(e.target.value)}>{users.filter(u=><select className="inp" value={target?.uid||""} onChange={e=>setTo(e.target.value)}>{users.map(u=><option key={idOf(u)} value={idOf(u)}>{u.name} (@{u.username})</option>)}</select>).map(u=><option key={idOf(u)} value={idOf(u)}>{u.name} (@{u.username})</option>)}</select>
           <div className="flex flex-wrap gap-2">{ALL.map(x=><button key={x.id} title={x.n} onClick={()=>setGi(x.id)} className={`sel rounded-xl px-3 py-1.5 text-2xl ${gi===x.id?"ring-2 ring-[var(--acc)]":""}`}><GImg g={x} size={32}/></button>)}</div>
           <button disabled={!target} onClick={async()=>{await giveGift(me,idOf(target),gi,"A gift from the admin",true);setNote("Gift sent")}} className={B}>Send {gf(gi).n} for free</button></div>
         <div className={card}><div className="font-semibold">Coins for everyone</div>
