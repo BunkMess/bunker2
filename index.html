@@ -922,7 +922,7 @@ function MiniApp({r,me,onClose}){
 }
 function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
   const bot=r.type==="bot",th=bot?r.id+"__"+me.uid:r.id;
-  const [ms,setMs]=useState([]),[text,setText]=useState(""),[info,setInfo]=useState(false),[menu,setMenu]=useState(false),[appOpen,setAppOpen]=useState(false),end=useRef(null); const hasApp=bot&&((r.username||"")+(r.name||"")).toLowerCase().match(/market|маркет/);,[text,setText]=useState(""),[info,setInfo]=useState(false),[menu,setMenu]=useState(false),end=useRef(null);
+  const [ms,setMs]=useState([]),[text,setText]=useState(""),[info,setInfo]=useState(false),[menu,setMenu]=useState(false),[appOpen,setAppOpen]=useState(false),end=useRef(null);   const hasApp=bot&&((r.username||"")+(r.name||"")).toLowerCase().match(/market|маркет/);
   useEffect(()=>onSnapshot(query(collection(db,"rmsgs"),where("room","==",th)),s=>setMs(s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.ts-b.ts))),[th]);
   useEffect(()=>{end.current?.scrollIntoView({behavior:"smooth"});onRead&&onRead(r.id)},[ms.length,th]);
   const isM=(r.members||[]).includes(me.uid),own=r.owner===me.uid;
