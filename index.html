@@ -88,9 +88,9 @@ const firebaseConfig = {
 const ADMIN_USERNAME = "admin";
 const ADMIN_PHONE = "+16505550100";
 // OPTIONAL: your own artwork for any gift. Add "gift_id": "https://your-site/image.png" (use only images you have rights to).
-const IMG = { /* n_cap: "https://example.com/cap.png", */ };
+const IMG = {};
 // OPTIONAL: Lottie animations (JSON URL) per gift id, e.g. n_cap: "https://your-host/cap.json". Use only files you are allowed to use.
-const LOT = { /* n_cap: "https://example.com/cap.json", */ };
+const LOT = {};
 /* =================================================================== */
 
 const configured = !firebaseConfig.apiKey.startsWith("YOUR_");
@@ -108,10 +108,14 @@ const REG=[mk("heart","❤️","2764_fe0f","Heart",50,"common","up"),mk("star","
  mk("teddy","🧸","1f9f8","Teddy Bear",70,"rare"),mk("champ","🍾","1f37e","Champagne",75,"rare"),mk("rocket","🚀","1f680","Rocket",80,"rare","fly"),mk("trophy","🏆","1f3c6","Trophy",80,"rare"),
  mk("diamond","💎","1f48e","Diamond",90,"epic"),mk("ring","💍","1f48d","Ring",90,"epic"),mk("crown","👑","1f451","Crown",95,"epic"),mk("car","🏎️","1f3ce_fe0f","Race Car",100,"legendary","fly"),mk("cash","💰","1f4b0","Money Bag",100,"legendary")];
 // NFT = limited supply (max copies ever). Serial numbers are minted in Firestore collection "nft".
-const NFT=[mk("n_frog","🐸","1f438","Frog Plush",9500,"legendary","pop",40),mk("n_cap","🧢","1f9e2","Royal Cap",45000,"mythic","pop",6),mk("n_peach","🍑","1f351","Golden Peach",21000,"legendary","pop",22),mk("n_shard","💠","1f4a0","Astral Shard",24000,"mythic","pop",14),mk("n_hexpot","🍲","1f372","Hex Pot",7800,"legendary","pop",42),
+const EXTRA_NFT=[["plushpepe","🐸","Plush Pepe",50000,"mythic",5],["durovscap","🧢","Durov's Cap",45000,"mythic",6],["preciousp"pop",6),mk("n_peach","🍑","1f351","Golden Peach",21000,"legendary","pop",22),mk("n_shard","💠","1f4a0","Astral Shard",24000,"mythic","pop",14),mk("n_hexpot","🍲","1f372","Hex Pot",7800,"legendary","pop",42),
  mk("n_homecake","🍰","1f370","Homemade Cake",3400,"epic","pop",95),mk("n_bunny","🐰","1f430","Jelly Bunny",3300,"epic","pop",100),mk("n_wine","🍷","1f377","Spiced Wine",5400,"epic","pop",68),mk("n_santa","🎅","1f385","Santa Hat",3000,"epic","pop",120),mk("n_orb","🔮","1f52e","Oracle Orb",4000,"epic","pop",75),
  mk("n_skullflower","☠️","2620_fe0f","Skull Flower",13500,"legendary","pop",30),mk("n_signet","💍","1f48d","Signet Ring",10500,"legendary","pop",36),mk("n_cigar","🚬","1f6ac","Vintage Cigar",6800,"epic","pop",58),mk("n_potion","🧪","1f9ea","Magic Potion",3800,"epic","pop",90),mk("n_kissfrog","💋","1f48b","Kissed Frog",4800,"epic","pop",75)];
 const ALL=[...REG,...NFT];
+EXTRA_NFT.forEach(([slug])=>{
+  IMG["n_"+slug]=`https://fragment.com{slug}-1.webp`;
+  LOT["n_"+slug]=`https://fragment.com{slug}-1.lottie.json`;
+});
 const gf=k=>ALL.find(x=>x.id===k)||ALL[0];
 const has=k=>ALL.some(x=>x.id===k);
 
