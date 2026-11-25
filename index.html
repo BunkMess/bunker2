@@ -558,7 +558,20 @@ function Prefs({me,logout,prefs,save}){
               <div key={i} className="rounded-2xl p-2 text-center border flex flex-col items-center justify-between" style={g.max&&x.nf?{...nftStyle(x.nf),borderColor:RC[g.r],color:"#fff"}:{borderColor:RC[g.r]}}>
                 <GImg g={g} size={44}/>
                 <div className="text-xs font-semibold mt-1 truncate w-full">{g.n}{g.max?` #${x.no}`:""}</div>
-                <button onClick={async()=>{if(confirm(`${tr("Sell")} ${g.n} за +${p} 🪙?`))try{await sellGift(me,x)}catch(e){alert(e.message)}}} className="mt-1.5 w-full py-1 rounded-xl acb text-[11px] font-bold">{tr("Sell")} +{p}</button>
+               <button onClick={()=>setAskSell({x,g,p})} className="mt-1.5 w-full py-1 rounded-xl acb text-[11px] font-bold">{tr("Sell")} +{p}</button>
+            </div>)})}</div>)}
+      </div>
+      {askSell&&<Modal onClose={()=>setAskSell(null)}><div className="p-6 text-center space-y-4">
+        <div className="flex justify-center"><GImg g={askSell.g} size={76}/></div>
+        <div><div className="text-lg font-bold">{tr("Sell")} {askSell.g.n}{askSell.g.max?` #${askSell.x.no}`:""}?</div>
+          <div className="text-sm mu mt-1">Подарок будет обменян на <span className="act font-bold">+{askSell.p} 🪙</span> (80% от цены)</div></div>
+        <div className="flex gap-2">
+          <button onClick={()=>setAskSell(null)} className="sel rounded-xl py-2.5 flex-1 font-semibold">Отмена</button>
+          <button onClick={async()=>{const cur=askSell;setAskSell(null);try{await sellGift(me,cur.x)}catch(e){setPerr(e.message)}}} className={B+" flex-1"}>{tr("Sell")} +{askSell.p}</button>
+        </div>
+      </div></Modal>}
+    </div>}
+
               </div>)})}</div>)}
         </div></div>}
       <div className="pn rounded-3xl p-4 text-center space-y-2">
