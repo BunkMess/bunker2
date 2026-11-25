@@ -139,8 +139,7 @@ const EXTRA_NFT=[
 const NFT=EXTRA_NFT.map(([s,e,n,c,r,m])=>mk("n_"+s,e,"1f381",n,c,r,"pop",m));
 const ALL=[...REG,...NFT];
 EXTRA_NFT.forEach(([s])=>{
-IMG["n_"+s]=`https://wsrv.nl{s}-1.webp&output=webp`;
-LOT["n_"+s]=`https://corsproxy.io{s}-1.lottie.json`;
+  IMG["n_"+s]="https://wsrv.nl"+s+"-1.webp&output=webp";
 });
 const gf=k=>ALL.find(x=>x.id===k)||ALL[0];
 const has=k=>ALL.some(x=>x.id===k);
