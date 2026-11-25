@@ -819,6 +819,8 @@ function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
       if(!bot)updateDoc(doc(db,"chats",r.id),{last:t.slice(0,60),lastTs:Date.now(),lastBy:me.name});
       setDoc(doc(db,"stats","global"),{messages:increment(1)},{merge:true});
       if(r.fath)father(t,me,rooms,x=>setTimeout(()=>post(r.id,x),450));
+if(r.fath)father(t,me,rooms,x=>setTimeout(()=>post(r.id,x),450));
+else if(bot&&(r.username||"").toLowerCase().includes("market"))setTimeout(()=>marketBot(t,me,(x,kb)=>post(r.id,x,kb)),350);
       else if(bot)setTimeout(()=>reply(r,t),400);
       else{const lo=t.toLowerCase(),at=lo.match(/@(\w+)/);gbots.forEach(b=>{const un=(b.username||"").toLowerCase();if((lo.startsWith("/")&&(!at||at[1]===un))||lo.includes("@"+un))setTimeout(()=>reply(b,t),400)})}
     }catch(e){alert("Could not send: "+e.message)}
