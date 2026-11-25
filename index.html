@@ -809,7 +809,7 @@ function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
   const can=!me.banned&&(bot||(isM&&(r.type==="group"||own)));
   const who=id=>id===r.id?r.name:(users.find(u=>idOf(u)===id)?.name||rooms.find(x=>x.id===id)?.name||"Deleted");
   const post=(from,t,kb)=>addDoc(collection(db,"rmsgs"),{room:th,from,text:t,ts:Date.now(),...(kb&&kb.length?{kb:kb.map(b=>({b}))}:{})});
-  const reply=async(b,t)=>{if(((b.username||"")+(b.name||"")).toLowerCase().match(/market|маркет/))return marketBot(t,me,(x,kb)=>post(b.id,x,kb));const x=await runBot(b,t,me,th);if(x)post(b.id,x.text,x.kb)};
+ const reply=async(b,t)=>{if(((b.username||"")+(b.name||"")).toLowerCase().match(/market|маркет/))return marketBot(t,me,(x,kb)=>post(b.id,x,kb));const x=await runBot(b,t,me,th);if(x)post(b.id,x.text,x.kb)};
   const gbots=(r.bots||[]).map(id=>rooms.find(x=>x.id===id)).filter(Boolean);
   const cmds=(bot?[r]:gbots).flatMap(b=>(b.cmds||"").split("\n").map(l=>{const i=l.indexOf("-");return i>0?{c:"/"+l.slice(0,i).trim().replace(/^\//,""),d:l.slice(i+1).trim()}:null}).filter(Boolean));
   const send=async txt=>{
