@@ -146,7 +146,7 @@ const gf=k=>ALL.find(x=>x.id===k)||ALL[0];
 const has=k=>ALL.some(x=>x.id===k);
 
 // Lottie player (lottie-web). Set URLs in LOT at the top of the file; falls back to the SVG art / emoji if loading fails.
-const Lot=({url,size,onFail})=>{const r=useRef(null);useEffect(()=>{if(!window.lottie||!r.current){onFail();return}const a=window.lottie.loadAnimation({container:r.current,renderer:"svg",loop:true,autoplay:true,path:url});a.addEventListener("data_failed",onFail);return()=>a.destroy()},[url]);return <div ref={r} style={{width:size,height:size}}/>};
+const Lot=({url,size})=><dotlottie-player src={url} background="transparent" speed="1" style={{width:size,height:size}} loop autoplay/>;
 // Lighting filter: specular bevel + soft drop shadow for a glossy, 3D look (used on larger sizes)
 const LIT=(<filter id="lit" x="-15%" y="-15%" width="130%" height="135%"><feGaussianBlur in="SourceAlpha" stdDeviation="2" result="b"/><feSpecularLighting in="b" surfaceScale="5" specularConstant=".85" specularExponent="24" lightingColor="#fff" result="sp"><fePointLight x="22" y="-8" z="75"/></feSpecularLighting><feComposite in="sp" in2="SourceAlpha" operator="in" result="s2"/><feComposite in="SourceGraphic" in2="s2" operator="arithmetic" k1="0" k2="1" k3=".7" k4="0" result="lit"/><feDropShadow in="lit" dx="0" dy="2.5" stdDeviation="2.5" floodColor="#000" floodOpacity=".3"/></filter>);
 // ---- Original vector artwork (glossy, lightly animated) for selected NFT gifts ----
