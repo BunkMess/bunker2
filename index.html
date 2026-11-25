@@ -647,6 +647,86 @@ const runBot=async(b,t,me,th)=>{
     if(j&&j.text)return{text:String(j.text),kb:Array.isArray(j.keyboard)?j.keyboard.map(r=>r.map(x=>({t:x.text,d:x.data||(x.url?"url:"+x.url:"")})).filter(x=>x.t&&x.d)).filter(r=>r.length):undefined};
   }catch{}}
   return ruleReply(b,t,me);
+};const marketBot=async(t,me,say)=>{
+  const k="mkt_"+me.uid;let st={};try{st=JSON.parse(localStorage.getItem(k))||{}}catch{}
+  const c=t.trim();
+  if(c==="/start"||c==="/help"){localStorage.removeItem(k);return say("💎 P2P NFT Market\n\nЗдесь игроки продают и покупают редкие NFT за монеты BunkMESS.",[[{t:"🛒 Купить NFT",d:"/market"},{t:"💰 Продать свой NFT",d:"/sell"}],[{t:"📦 Мои лоты",d:"/mylots"}]]);}
+  if(c==="/market"){
+    const s=await getDocs(collection(db,"market"));
+    const items=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);
+    if(!items.length)return say("На рынке пока пусто. Выстави свой NFT первым!",[[{t:"💰 Продать NFT",d:"/sell"},{t:"🔄 Обновить",d:"/market"}]]);
+    const kb=items.slice(0,15).map(x=>{const g=gf(x.item.g);return[{t:`${g.e} ${g.n} #${x.item.no} — ${x.price} 🪙 (${x.sellerName})`,d:"/buy_"+x.id}]});
+    kb.push([{t:"🔄 Обновить",d:"/market"},{t:"⬅️ Меню",d:"/start"}]);
+    return say(`🛒 Активные лоты на рынке (${items.length}):\nНажми на лот, чтобы купить его за монеты.`,kb);
+  }
+  if(c==="/sell"){
+    const nfts=(me.gifts||[]).map((x,idx)=>({x,idx,g:gf(x.g)})).filter(o=>o.g.max);
+    if(!nfts.length)return say("У тебя пока нет лимитированных NFT для продажи.",[[{t:"🛒 Перейти к покупкам",d:"/market"}]]);
+    const kb=nfts.map(o=>[{t:`${o.g.e} ${o.g.n} #${o.x.no}`,d:"/pick_"+o.idx}]);
+    kb.push([{t:"⬅️ Отмена",d:"/start"}]);
+    return say("Выбери NFT из своей витрины, который хочешь выставить на продажу:",kb);
+  }
+  if(c.startsWith("/pick_")){
+    const idx=Number(c.slice(6)),item=(me.gifts||[])[idx];
+    if(!item||!gf(item.g).max)return say("Этот NFT не найден.");
+    localStorage.setItem(k,JSON.stringify({idx,item}));
+    return say(`Введи цену в монетах для ${gf(item.g).n} #${item.no} (например: 15000):`,[[{t:"❌ Отмена",d:"/start"}]]);
+  }
+  if(st.item&&/^\d+$/.test(c)){
+    const price=Math.max(1,Math.min(10000000,Number(c)));localStorage.removeItem(k);
+    try{
+      await runTransaction(db,async tx=>{
+        const uref=doc(db,"users",me.uid),arr=((await tx.get(uref)).data().gifts||[]).slice();
+        const i=arr.findIndex(y=>y.ts===st.item.ts&&y.g===st.item.g&&y.no===st.item.no);
+        if(i<0)throw new Error("NFT уже продан или снят.");
+        const [item]=arr.splice(i,1);
+        tx.update(uref,{gifts:arr});
+        tx.set(doc(collection(db,"market")),{seller:me.uid,sellerName:me.name,price,item,ts:Date.now()});
+      });
+      return say(`✅ Лот выставлен на рынок за ${price} 🪙!`,[[{t:"🛒 Смотреть рынок",d:"/market"},{t:"📦 Мои лоты",d:"/mylots"}]]);
+    }catch(e){return say("Ошибка: "+e.message);}
+  }
+  if(c==="/mylots"){
+    const s=await getDocs(query(collection(db,"market"),where("seller","==",me.uid)));
+    const mine=s.docs.map(d=>({id:d.id,...d.data()}));
+    if(!mine.length)return say("У тебя нет активных лотов на продаже.",[[{t:"💰 Продать NFT",d:"/sell"},{t:"⬅️ Меню",d:"/start"}]]);
+    const kb=mine.map(x=>[{t:`❌ Снять: ${gf(x.item.g).n} #${x.item.no} (${x.price} 🪙)`,d:"/cancel_"+x.id}]);
+    kb.push([{t:"⬅️ Меню",d:"/start"}]);
+    return say("Твои активные лоты (нажми, чтобы снять с продажи и вернуть в профиль):",kb);
+  }
+  if(c.startsWith("/cancel_")){
+    const lid=c.slice(8);
+    try{
+      await runTransaction(db,async tx=>{
+        const lref=doc(db,"market",lid),lsnap=await tx.get(lref);
+        if(!lsnap.exists()||lsnap.data().seller!==me.uid)throw new Error("Лот уже куплен или удалён.");
+        tx.delete(lref);
+        tx.update(doc(db,"users",me.uid),{gifts:arrayUnion(lsnap.data().item)});
+      });
+      return say("↩️ Лот снят с продажи, NFT вернулся в твой профиль!",[[{t:"📦 Мои лоты",d:"/mylots"},{t:"⬅️ Меню",d:"/start"}]]);
+    }catch(e){return say("Ошибка: "+e.message);}
+  }
+  if(c.startsWith("/buy_")){
+    const lid=c.slice(5);
+    try{
+      let info="";
+      await runTransaction(db,async tx=>{
+        const lref=doc(db,"market",lid),lsnap=await tx.get(lref);
+        if(!lsnap.exists())throw new Error("Этот лот уже кто-то выкупил!");
+        const lot=lsnap.data();
+        if(lot.seller===me.uid)throw new Error("Нельзя купить свой же лот. Используй /mylots, чтобы снять его.");
+        const bref=doc(db,"users",me.uid),bsnap=await tx.get(bref);
+        if((bsnap.data().coins||0)<lot.price)throw new Error(`Не хватает монет! Нужно ${lot.price} 🪙.`);
+        const bought={...lot.item,by:lot.seller,n:lot.sellerName+" (Market)",ts:Date.now()};
+        tx.delete(lref);
+        tx.update(bref,{coins:increment(-lot.price),gifts:arrayUnion(bought)});
+        tx.update(doc(db,"users",lot.seller),{coins:increment(lot.price)});
+        info=`${gf(lot.item.g).n} #${lot.item.no} за ${lot.price} 🪙`;
+      });
+      return say(`🎉 Поздравляем! Ты купил ${info}! Он уже на витрине твоего профиля.`,[[{t:"🛒 К рынку",d:"/market"},{t:"⬅️ Меню",d:"/start"}]]);
+    }catch(e){return say("❌ "+e.message,[[{t:"🛒 Вернуться на рынок",d:"/market"}]]);}
+  }
+  return say("Используй кнопки меню или /start",[[{t:"🛒 Открыть маркет",d:"/start"}]]);
 };
 const father=async(t,me,rooms,say)=>{
   const k="bf_"+me.uid;let st={};try{st=JSON.parse(localStorage.getItem(k))||{}}catch{}
