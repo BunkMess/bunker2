@@ -53,10 +53,11 @@ html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"
 <script type="text/babel" data-type="module">
 import React,{useState,useEffect,useMemo,useRef} from "react";
 import {createRoot} from "react-dom/client";
-import {Send,MessageCircle,Users,Settings,Shield,Search,Smile,Check,CheckCheck,BadgeCheck,Ban,Trash2,Megaphone,ArrowLeft,LogOut,X,Gift,Coins,User,Palette,Globe,Camera,Wallet} from "lucide-react";
+import {Send,MessageCircle,Users,Settings,Shield,Search,Smile,Check,CheckCheck,BadgeCheck,Ban,Trash2,Megaphone,ArrowLeft,LogOut,X,Gift,Coins,User,Palette,Globe,Camera,Wallet,Plus} from "lucide-react";
 import {initializeApp} from "firebase/app";
 import {getAuth,RecaptchaVerifier,signInWithPhoneNumber,onAuthStateChanged,signOut} from "firebase/auth";
-import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,query,where,writeBatch,increment,arrayUnion,runTransaction} from "firebase/firestore";
+import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,query,where,writeBatch,increment,arrayUnion,arrayRemove,getDocs,runTransaction} from "firebase/firestore";
+
 /* ============ 1. FIREBASE CONFIG: PASTE YOUR KEYS HERE ============ */
 const firebaseConfig = {
   apiKey: "AIzaSyBF4HDV3bAETWBmcG446ookE5q1GD5dwd8",
@@ -79,7 +80,7 @@ const app = configured ? initializeApp(firebaseConfig) : null;
 const db = configured ? getFirestore(app) : null;
 const auth = configured ? getAuth(app) : null;
 
-const ONLINE_MS=65000, START_COINS=1000, BONUS=250, PK="vkgram_prefs2";
+const SELL=.8, SELL_MS=3*864e5, ONLINE_MS=65000, START_COINS=1000, BONUS=250, PK="vkgram_prefs2";
 const COLORS=["#e5524d","#f08c32","#e0a800","#4cae4f","#2a9fb5","#2787f5","#7b61d9","#d94fa0"];
 const AVATARS=["🦊","🐼","🐯","🦁","🐸","🐵","🐙","🦄","🐧","🤖","👻","🌸"];
 const EMOJIS=["😀","😂","😍","😎","🥳","😭","😡","👍","👎","🙏","👏","🔥","❤️","💯","🎉","🤔","😴","🤝","👀","✨","🍕","☕","🎮","🚀"];
@@ -122,7 +123,7 @@ const beep=()=>{try{const A=new (window.AudioContext||window.webkitAudioContext)
 const DL=(navigator.language||"").startsWith("ru")?"ru":"en";
 const PD={theme:"dark",acc:"Blue",wall:"none",lang:DL,fs:15,rad:22,dens:"cozy",ts:true,rc:true,ent:true,snd:false,h12:false,anim:true,blur:24,font:"system"};
 const loadPrefs=()=>{try{return{...PD,...JSON.parse(localStorage.getItem(PK))}}catch{return{...PD}}};
-const L={ru:{"Ocean": "Океан", "Forest": "Лес", "Sunset": "Закат", "Rose": "Роза", "Nord": "Нордик", "Mocha": "Мокка", "Sky (Light)": "Небо (светлая)", "lines": "Линии", "checks": "Клетка", "stars": "Звёзды", "aurora": "Аврора", "Chat": "Чат", "Privacy": "Приватность", "Text size": "Размер текста", "Bubble corners": "Скругление пузырей", "Spacing": "Интервал", "Compact": "Плотно", "Cozy": "Обычно", "Roomy": "Свободно", "Font": "Шрифт", "System": "Системный", "Serif": "С засечками", "Mono": "Моно", "Rounded": "Округлый", "Show time": "Показывать время", "Read receipts": "Отметки прочтения", "Enter sends message": "Enter отправляет", "Message sound": "Звук сообщений", "12-hour clock": "12-часовой формат", "Gift animations": "Анимации подарков", "Glass blur": "Размытие стекла", "Custom color": "Свой цвет", "Hide last seen": "Скрыть время захода", "Others will see last seen recently": "Другие увидят «был(а) недавно»", "last seen recently": "был(а) недавно", "Reset display settings": "Сбросить настройки вида", "Preview": "Превью", "Hi! How's it going?": "Привет! Как дела?", "All good, thanks!": "Всё отлично, спасибо!","Profile":"Профиль","Theme":"Тема","Accent color":"Цвет акцента","Wallpaper":"Обои","Balance":"Баланс","Account settings": "Настройки аккаунта", "Chats": "Чаты", "Users": "Люди", "Settings": "Настройки", "Admin": "Админ", "Search": "Поиск", "No users found.": "Никого не найдено.", "No chats yet. Open Users to start one.": "Чатов пока нет. Откройте «Люди», чтобы начать.", "Select a chat to start messaging": "Выберите чат, чтобы начать общение", "online": "в сети", "last seen ": "был(а) ", "No messages yet. Say hi!": "Сообщений пока нет. Поздоровайтесь!", "Write a message…": "Напишите сообщение…", "You are banned from sending messages.": "Вам запрещено отправлять сообщения.", "You": "Вы", "You sent": "Вы отправили", "sent you": "отправил(а) вам", "Announcement:": "Объявление:", "limited": "лимит", "Upload photo": "Загрузить фото", "Remove photo": "Удалить фото", "Display name": "Имя", "Bio": "О себе", "Save changes": "Сохранить", "Saved": "Сохранено", "Wallet": "Кошелёк", "Claim": "Получить", "coins": "монет", "Next bonus in ": "Следующий бонус через ", "h": "ч", "Appearance": "Оформление", "Language": "Язык", "Log out": "Выйти", "Light (VK Clean)": "Светлая", "Dark (Strict)": "Тёмная", "Midnight Blue": "Полночный синий", "AMOLED Black": "AMOLED чёрная", "No wallpaper": "Без обоев", "dots": "Точки", "grid": "Сетка", "waves": "Волны", "Username": "Имя пользователя", "No bio yet": "Пока пусто", "Registered": "Регистрация", "Gifts showcase": "Витрина подарков", "No gifts yet.": "Подарков пока нет.", "Send message": "Написать", "Send gift": "Подарить", "Gift for": "Подарок для", "Gifts": "Подарки", "NFT · Limited": "NFT · Лимит", "Add a message (optional)": "Добавьте сообщение (необязательно)", "Balance after:": "Баланс после:", "Sold out": "Распродано", "Not enough coins": "Не хватает монет", "Send": "Отправить", "for": "за", "left": "осталось", "Sign in with your phone number": "Вход по номеру телефона", "Send SMS code": "Отправить SMS-код", "Sending…": "Отправка…", "Admin quick login": "Быстрый вход админа", "Enter the 6-digit code sent to": "Введите 6-значный код, отправленный на", "Verify and continue": "Подтвердить", "Checking…": "Проверка…", "Use a different number": "Другой номер", "Set up your profile": "Настройте профиль", "Bio (optional)": "О себе (необязательно)", "Create profile": "Создать профиль", "Cancel and sign out": "Отмена и выход"}};
+const L={ru:{"START": "СТАРТ", "Add bot": "Добавить бота", "Bot not found": "Бот не найден", "Remove": "Убрать", "Bots in this chat": "Боты в этом чате", "Webhook URL (optional)": "Webhook URL (необязательно)", "Commands (one per line: command - description)": "Команды (по строке: команда - описание)", "To create a bot, open BotFather in the Bots list and send /newbot": "Чтобы создать бота, откройте BotFather в разделе «Боты» и отправьте /newbot","Group": "Группа", "Channel": "Канал", "Bot": "Бот", "Create": "Создать", "Name": "Название", "Description": "Описание", "Members": "Участники", "Subscribers": "Подписчики", "owner": "владелец", "Join": "Вступить", "Leave": "Выйти", "Delete": "Удалить", "Save": "Сохранить", "People": "Люди", "Groups & Channels": "Группы и каналы", "Bots": "Боты", "Only the owner can post": "Писать может только владелец", "Join to write": "Вступить, чтобы писать", "Sell": "Продать", "Sold": "Продано", "Sale expired": "Срок продажи истёк", "Bot replies (one per line: trigger => reply)": "Ответы бота (по строке: триггер => ответ)", "You can sell a gift within 3 days of getting it for 80% of its price": "Подарок можно продать в течение 3 дней после получения за 80% цены","Ocean": "Океан", "Forest": "Лес", "Sunset": "Закат", "Rose": "Роза", "Nord": "Нордик", "Mocha": "Мокка", "Sky (Light)": "Небо (светлая)", "lines": "Линии", "checks": "Клетка", "stars": "Звёзды", "aurora": "Аврора", "Chat": "Чат", "Privacy": "Приватность", "Text size": "Размер текста", "Bubble corners": "Скругление пузырей", "Spacing": "Интервал", "Compact": "Плотно", "Cozy": "Обычно", "Roomy": "Свободно", "Font": "Шрифт", "System": "Системный", "Serif": "С засечками", "Mono": "Моно", "Rounded": "Округлый", "Show time": "Показывать время", "Read receipts": "Отметки прочтения", "Enter sends message": "Enter отправляет", "Message sound": "Звук сообщений", "12-hour clock": "12-часовой формат", "Gift animations": "Анимации подарков", "Glass blur": "Размытие стекла", "Custom color": "Свой цвет", "Hide last seen": "Скрыть время захода", "Others will see last seen recently": "Другие увидят «был(а) недавно»", "last seen recently": "был(а) недавно", "Reset display settings": "Сбросить настройки вида", "Preview": "Превью", "Hi! How's it going?": "Привет! Как дела?", "All good, thanks!": "Всё отлично, спасибо!","Profile":"Профиль","Theme":"Тема","Accent color":"Цвет акцента","Wallpaper":"Обои","Balance":"Баланс","Account settings": "Настройки аккаунта", "Chats": "Чаты", "Users": "Люди", "Settings": "Настройки", "Admin": "Админ", "Search": "Поиск", "No users found.": "Никого не найдено.", "No chats yet. Open Users to start one.": "Чатов пока нет. Откройте «Люди», чтобы начать.", "Select a chat to start messaging": "Выберите чат, чтобы начать общение", "online": "в сети", "last seen ": "был(а) ", "No messages yet. Say hi!": "Сообщений пока нет. Поздоровайтесь!", "Write a message…": "Напишите сообщение…", "You are banned from sending messages.": "Вам запрещено отправлять сообщения.", "You": "Вы", "You sent": "Вы отправили", "sent you": "отправил(а) вам", "Announcement:": "Объявление:", "limited": "лимит", "Upload photo": "Загрузить фото", "Remove photo": "Удалить фото", "Display name": "Имя", "Bio": "О себе", "Save changes": "Сохранить", "Saved": "Сохранено", "Wallet": "Кошелёк", "Claim": "Получить", "coins": "монет", "Next bonus in ": "Следующий бонус через ", "h": "ч", "Appearance": "Оформление", "Language": "Язык", "Log out": "Выйти", "Light (VK Clean)": "Светлая", "Dark (Strict)": "Тёмная", "Midnight Blue": "Полночный синий", "AMOLED Black": "AMOLED чёрная", "No wallpaper": "Без обоев", "dots": "Точки", "grid": "Сетка", "waves": "Волны", "Username": "Имя пользователя", "No bio yet": "Пока пусто", "Registered": "Регистрация", "Gifts showcase": "Витрина подарков", "No gifts yet.": "Подарков пока нет.", "Send message": "Написать", "Send gift": "Подарить", "Gift for": "Подарок для", "Gifts": "Подарки", "NFT · Limited": "NFT · Лимит", "Add a message (optional)": "Добавьте сообщение (необязательно)", "Balance after:": "Баланс после:", "Sold out": "Распродано", "Not enough coins": "Не хватает монет", "Send": "Отправить", "for": "за", "left": "осталось", "Sign in with your phone number": "Вход по номеру телефона", "Send SMS code": "Отправить SMS-код", "Sending…": "Отправка…", "Admin quick login": "Быстрый вход админа", "Enter the 6-digit code sent to": "Введите 6-значный код, отправленный на", "Verify and continue": "Подтвердить", "Checking…": "Проверка…", "Use a different number": "Другой номер", "Set up your profile": "Настройте профиль", "Bio (optional)": "О себе (необязательно)", "Create profile": "Создать профиль", "Cancel and sign out": "Отмена и выход"}};
 let LANG="en",H12=false;
 const tr=k=>(L[LANG]&&L[LANG][k])||k;
 const resize=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const S=192,c=document.createElement("canvas");c.width=c.height=S;const m=Math.min(im.width,im.height);c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);res(c.toDataURL("image/jpeg",.82))};im.onerror=()=>rej(new Error("Not an image"));im.src=r.result};r.onerror=rej;r.readAsDataURL(file)});
@@ -173,7 +174,7 @@ const Avatar=({u,size=44,dot})=>(
   </div>);
 const Name=({u})=>(
   <span className="inline-flex items-center gap-1 font-semibold truncate">{u.name}
-    {u.verified&&<BadgeCheck size={16} className="text-[#2787f5] shrink-0" fill="currentColor" stroke="white"/>}</span>);
+    {u.type==="bot"&&<span className="text-[9px] px-1.5 py-0.5 rounded-full acb font-bold">BOT</span>}{u.verified&&<BadgeCheck size={16} className="text-[#2787f5] shrink-0" fill="currentColor" stroke="white"/>}</span>);
 const Picker=({f,set})=>(
   <div className="space-y-2">
     <div className="flex flex-wrap gap-1.5">{AVATARS.map(a=><button type="button" key={a} onClick={()=>set({emoji:a})} className={`w-9 h-9 rounded-full text-lg sel ${f.emoji===a?"ring-2 ring-[var(--acc)]":""}`}>{a}</button>)}</div>
@@ -251,9 +252,21 @@ function Onboard({au,users,logout}){
     </div></div>);
 }
 
+async function sellGift(me,x){
+  const price=Math.floor(gf(x.g).c*SELL),ref=doc(db,"users",me.uid);
+  await runTransaction(db,async tx=>{
+    const arr=((await tx.get(ref)).data().gifts||[]).slice(),i=arr.findIndex(y=>y.ts===x.ts&&y.g===x.g&&y.by===x.by);
+    if(i<0)throw new Error("Gift not found");
+    if(Date.now()-arr[i].ts>SELL_MS)throw new Error(tr("Sale expired"));
+    arr.splice(i,1);tx.update(ref,{gifts:arr,coins:increment(price)});
+  });
+}
+
 function Profile({u,me,now,onClose,onChat,onGift}){
+  const own=u.uid===me.uid,[note,setNote]=useState("");
   const gs=(u.gifts||[]).slice().sort((a,b)=>(gf(b.g).max?1:0)-(gf(a.g).max?1:0)||b.ts-a.ts);
   const row=(l,v)=><div className="flex justify-between gap-3 py-2 border-b bl text-sm"><span className="mu">{l}</span><span className="text-right">{v}</span></div>;
+  const sell=async x=>{const g=gf(x.g),p=Math.floor(g.c*SELL);if(!confirm(`${tr("Sell")} ${g.n}: +${p}?`))return;try{await sellGift(me,x);setNote(`${tr("Sold")} ${g.n}: +${p}`)}catch(e){setNote(e.message)}};
   return(
     <Modal onClose={onClose}>
       <div className="p-6 text-center">
@@ -265,13 +278,16 @@ function Profile({u,me,now,onClose,onChat,onGift}){
         {row(tr("Username"),"@"+u.username)}{row(tr("Bio"),u.bio||tr("No bio yet"))}
         {row(tr("Registered"),new Date(u.createdAt).toLocaleDateString([],{year:"numeric",month:"long",day:"numeric"}))}
         <div className="py-3"><div className="font-semibold text-sm mb-2">{tr("Gifts showcase")} ({gs.length})</div>
-          {!gs.length?<p className="text-sm mu">{tr("No gifts yet.")}</p>:<div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">{gs.map((x,i)=>{const g=gf(x.g);return(
-            <div key={i} title={`${g.n} from ${x.n}`} className="rounded-xl p-1.5 text-center border flex flex-col items-center" style={g.max&&x.nf?{...nftStyle(x.nf),borderColor:RC[g.r],color:"#fff"}:{borderColor:RC[g.r]}}><GImg g={g} size={40}/>{g.max&&<div className="text-[10px] mu">#{x.no}</div>}</div>)})}</div>}
+          {!gs.length?<p className="text-sm mu">{tr("No gifts yet.")}</p>:<div className="grid grid-cols-4 gap-2 max-h-56 overflow-y-auto">{gs.map((x,i)=>{const g=gf(x.g),left=SELL_MS-(Date.now()-x.ts);return(
+            <div key={i} title={`${g.n} from ${x.n}`} className="rounded-xl p-1.5 text-center border flex flex-col items-center" style={g.max&&x.nf?{...nftStyle(x.nf),borderColor:RC[g.r],color:"#fff"}:{borderColor:RC[g.r]}}><GImg g={g} size={40}/>{g.max&&<div className="text-[10px] mu">#{x.no}</div>}
+              {own&&(left>0?<button onClick={()=>sell(x)} className="text-[10px] act font-semibold">{tr("Sell")} +{Math.floor(g.c*SELL)}</button>:<div className="text-[10px] mu">🔒</div>)}</div>)})}</div>}
+          {own&&<p className="text-[11px] mu mt-2">{tr("You can sell a gift within 3 days of getting it for 80% of its price")}</p>}
+          {note&&<p className="text-xs text-green-500 mt-1">{note}</p>}
         </div>
       </div>
       <div className="p-6 pt-2 flex gap-2">
         <button onClick={()=>onChat(idOf(u))} className={B+" flex-1"}>{tr("Send message")}</button>
-        {u.uid!==me.uid&&<button onClick={()=>onGift(idOf(u))} className="sel rounded-xl px-4 py-2 font-semibold flex-1 flex items-center justify-center gap-1.5"><Gift size={16}/>{tr("Send gift")}</button>}
+        {!own&&<button onClick={()=>onGift(idOf(u))} className="sel rounded-xl px-4 py-2 font-semibold flex-1 flex items-center justify-center gap-1.5"><Gift size={16}/>{tr("Send gift")}</button>}
       </div>
     </Modal>);
 }
@@ -343,29 +359,23 @@ const CONF=["#f43f5e","#f59e0b","#22c55e","#3b82f6","#a855f7","#fde047","#ffffff
 const tgt=()=>{const W=innerWidth,H=innerHeight;return[W>=768?(332+W)/2:W/2,H*.62]};
 
 // Timeline: confetti burst + unique intro (1.1s) -> gift slams into the chat (0.5s) -> shockwave + chat shake
-function GiftAnim({a,onDone,onHit}){
-  const g=a.g,c=RC[g.r],ref=useRef(null),[ring,setRing]=useState(false);
+function GiftAnim({a,onDone}){
+  const g=a.g,c=RC[g.r],ref=useRef(null);
   const [e,mode,n,vx=0,vy=0]=PT[g.id]||["✨","burst",12];
   const parts=useMemo(()=>Array.from({length:n},()=>({x:vx+(Math.random()-.5)*(vx?160:300),y:vy+(Math.random()-.5)*(vy?160:300),r:Math.round(Math.random()*540-270)+"deg",d:Math.random()*.7,s:18+Math.random()*20})),[]);
-  const conf=useMemo(()=>Array.from({length:46},(_,i)=>{const an=Math.random()*6.283,di=120+Math.random()*260;return{x:Math.cos(an)*di,y:Math.sin(an)*di-80,r:Math.round(Math.random()*720)+"deg",c:CONF[i%CONF.length],w:6+Math.random()*7,h:10+Math.random()*8,d:Math.random()*.15,o:i%3?2:"50%"}}),[]);
+  const conf=useMemo(()=>Array.from({length:60},(_,i)=>{const an=Math.random()*6.283,di=120+Math.random()*300;return{x:Math.cos(an)*di,y:Math.sin(an)*di-80,r:Math.round(Math.random()*720)+"deg",c:CONF[i%CONF.length],w:6+Math.random()*7,h:10+Math.random()*8,d:Math.random()*.2,o:i%3?2:"50%"}}),[]);
   useEffect(()=>{
-    const el=ref.current,[tx,ty]=tgt();
-    el.animate(INTRO[g.id]||K("scale(.3)","scale(1.25)","scale(1)"),{duration:1100,easing:"ease-out",fill:"forwards"});
-    const t1=setTimeout(()=>el.animate([{transform:"translate(0,0) scale(1) rotate(0)"},{transform:`translate(${tx-innerWidth/2}px,${ty-innerHeight/2}px) scale(.3) rotate(35deg)`}],{duration:480,easing:"cubic-bezier(.55,0,.9,.4)",fill:"forwards"}),1150);
-    const t2=setTimeout(()=>{setRing(true);onHit&&onHit()},1630);
-    const t3=setTimeout(onDone,2600);
-    return()=>[t1,t2,t3].forEach(clearTimeout);
+    ref.current.animate(INTRO[g.id]||K("scale(.3)","scale(1.25)","scale(1)"),{duration:1300,easing:"ease-out",fill:"forwards"});
+    const t=setTimeout(onDone,2300);return()=>clearTimeout(t);
   },[]);
-  const [tx,ty]=tgt();
   return(
-    <div className="fixed inset-0 z-[60] pointer-events-none overflow-hidden" style={{background:a.nf?`radial-gradient(circle at 50% 50%,${BDS[a.nf.bd%BDS.length][1]}cc,rgba(0,0,0,.8) 80%)`:"rgba(0,0,0,.6)",animation:"gover 2.6s forwards"}}>
+    <div className="fixed inset-0 z-[60] pointer-events-none overflow-hidden" style={{background:a.nf?`radial-gradient(circle at 50% 50%,${BDS[a.nf.bd%BDS.length][1]}cc,rgba(0,0,0,.8) 80%)`:"rgba(0,0,0,.6)",animation:"gover 2.3s forwards"}}>
       <div className="absolute" style={{left:"50%",top:"50%"}}>
-        {conf.map((p,i)=><span key={i} className="absolute" style={{width:p.w,height:p.h,background:p.c,borderRadius:p.o,"--x":p.x+"px","--y":p.y+"px","--r":p.r,animation:`gconf 1.5s ${p.d}s cubic-bezier(.1,.7,.3,1) both`}}/>)}
+        {conf.map((p,i)=><span key={i} className="absolute" style={{width:p.w,height:p.h,background:p.c,borderRadius:p.o,"--x":p.x+"px","--y":p.y+"px","--r":p.r,animation:`gconf 1.6s ${p.d}s cubic-bezier(.1,.7,.3,1) both`}}/>)}
         {parts.map((p,i)=><span key={"p"+i} className="absolute" style={{fontSize:p.s,"--x":p.x+"px","--y":p.y+"px","--r":p.r,animation:`${mode==="up"?"gup":mode==="fall"?"gfall":"gfly"} 1.6s ${p.d}s ease-out both`}}>{e}</span>)}
         <div className="absolute" style={{left:-70,top:-70,filter:g.max?`drop-shadow(0 0 26px ${c})`:undefined}}><div ref={ref}><GImg g={g} size={140}/></div></div>
-        <div className="absolute whitespace-nowrap text-xs uppercase" style={{left:0,top:100,transform:"translateX(-50%)",color:c,letterSpacing:".3em",animation:"gtext 1.5s forwards"}}>{g.n}{a.no?` · #${a.no}/${g.max}`:""}</div>
+        <div className="absolute whitespace-nowrap text-xs uppercase" style={{left:0,top:100,transform:"translateX(-50%)",color:c,letterSpacing:".3em",animation:"gtext 1.8s forwards"}}>{g.n}{a.no?` · #${a.no}/${g.max}`:""}</div>
       </div>
-      {ring&&<div className="absolute rounded-full" style={{left:tx-10,top:ty-10,width:20,height:20,border:`3px solid ${c}`,animation:"gring .7s ease-out forwards"}}/>}
     </div>);
 }
 
@@ -530,10 +540,160 @@ function Admin({me,users,stats,ann,now}){
     </div>);
 }
 
-function GiftCard({m,g,mine,users,prefs}){
+const RLAB={group:"Group",channel:"Channel",bot:"Bot"};
+const DEFRULES="/start => Hi {name}! I am a bot. || Roll:/roll, Coin:/coin ; Help:/help\n/help => Try /roll, /coin or /time\n/roll => You rolled {roll}\n/coin => {coin}\n/time => It is {time}\nhello => Hello, {name}!\n* => I did not get that. Try /help";
+const FATHER={id:"botfather",type:"bot",fath:true,name:"BotFather",username:"BotFather",verified:true,emoji:"🤖",color:"#2787f5",desc:"Create and manage your bots",cmds:"newbot - Create a new bot\nmybots - List your bots\nhelp - Show help\ncancel - Cancel",createdAt:0,lastTs:0,members:[]};
+
+// ---- bot engine (runs in the browser of whoever writes to the bot) ----
+// Rule line: trigger => reply || Label:/cmd, Label:url:https://x.com ; NextRow:data      ("*" = fallback)
+const parseKb=x=>x.split(";").map(r=>r.split(",").map(b=>{const i=b.indexOf(":");return{t:b.slice(0,i).trim(),d:b.slice(i+1).trim()}}).filter(b=>b.t&&b.d)).filter(r=>r.length);
+const fillT=(x,me)=>x.replace(/\{name\}/g,me.name).replace(/\{username\}/g,me.username).replace(/\{time\}/g,new Date().toLocaleTimeString()).replace(/\{roll\}/g,1+Math.floor(Math.random()*100)).replace(/\{coin\}/g,Math.random()<.5?"Heads":"Tails");
+const ruleReply=(b,t,me)=>{
+  const lo=t.toLowerCase().replace(/@\w+/,"").trim(),L2=(b.rules||"").split("\n");
+  const mk2=v=>{const [a,k]=v.split("||");return{text:fillT(a.trim(),me),kb:k?parseKb(k):undefined}};
+  for(const ln of L2){const i=ln.indexOf("=>");if(i<1)continue;const k=ln.slice(0,i).trim().toLowerCase();if(k&&k!=="*"&&(k.startsWith("/")?lo.split(" ")[0]===k:lo.includes(k)))return mk2(ln.slice(i+2))}
+  const d=L2.find(l=>l.trim().startsWith("*")&&l.includes("=>"));return d?mk2(d.slice(d.indexOf("=>")+2)):null;
+};
+// Webhook bots: POST {bot,chat,text,from} -> {text, keyboard:[[{text,data|url}]]}  (needs CORS on your server)
+const runBot=async(b,t,me,th)=>{
+  if(b.hook){try{
+    const j=await (await fetch(b.hook,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({bot:b.username,chat:th,text:t,from:{id:me.uid,name:me.name,username:me.username}})})).json();
+    if(j&&j.text)return{text:String(j.text),kb:Array.isArray(j.keyboard)?j.keyboard.map(r=>r.map(x=>({t:x.text,d:x.data||(x.url?"url:"+x.url:"")})).filter(x=>x.t&&x.d)).filter(r=>r.length):undefined};
+  }catch{}}
+  return ruleReply(b,t,me);
+};
+const father=async(t,me,rooms,say)=>{
+  const k="bf_"+me.uid;let st={};try{st=JSON.parse(localStorage.getItem(k))||{}}catch{}
+  const c=t.trim().toLowerCase().split(" ")[0];
+  if(c==="/start"||c==="/help")return say("I can help you create and manage bots.\n\n/newbot - create a new bot\n/mybots - list your bots\n/cancel - cancel the current operation");
+  if(c==="/cancel"){localStorage.removeItem(k);return say("Cancelled.")}
+  if(c==="/newbot"){localStorage.setItem(k,JSON.stringify({s:"name"}));return say("Alright, a new bot. How are we going to call it? Please choose a name for your bot.")}
+  if(c==="/mybots"){const m=rooms.filter(r=>r.type==="bot"&&r.owner===me.uid);return say(m.length?"Your bots:\n"+m.map(r=>"@"+r.username+" - "+r.name).join("\n")+"\n\nOpen a bot and tap its header to edit commands, replies and webhook.":"You have no bots yet. Use /newbot")}
+  if(st.s==="name"){localStorage.setItem(k,JSON.stringify({s:"user",name:t.trim().slice(0,40)}));return say("Good. Now let's choose a username for your bot. It must end in bot. For example: TetrisBot or tetris_bot.")}
+  if(st.s==="user"){
+    const u=t.trim().replace(/^@/,"");
+    if(!/^[A-Za-z0-9_]{3,29}$/.test(u)||!/bot$/i.test(u))return say("Sorry, the username must end in bot and use only letters, digits or underscores. Try again.");
+    if(rooms.some(r=>(r.username||"").toLowerCase()===u.toLowerCase()))return say("Sorry, this username is already taken. Please try something different.");
+    localStorage.removeItem(k);
+    await addDoc(collection(db,"chats"),{type:"bot",username:u,name:st.name,desc:"",emoji:"🤖",color:COLORS[5],owner:me.uid,members:[],createdAt:Date.now(),lastTs:Date.now(),last:"",lastBy:"",rules:DEFRULES,cmds:"start - Start the bot\nhelp - Show help\nroll - Roll a number\ncoin - Flip a coin",hook:""});
+    return say("Done! Congratulations on your new bot. You will find it at @"+u+" in the Bots list. Open it and tap its header to set replies, commands and an optional webhook.");
+  }
+  return say("I do not understand. Use /help.");
+};
+
+function CreateRoom({me,onClose,onDone}){
+  const [f,setF]=useState({type:"group",name:"",desc:"",emoji:"💬",color:COLORS[5]}),[busy,setBusy]=useState(false);
+  const set=p=>setF(o=>({...o,...p}));
+  const go=async()=>{
+    if(!f.name.trim())return;setBusy(true);
+    try{const r=await addDoc(collection(db,"chats"),{type:f.type,name:f.name.trim(),desc:f.desc.trim(),emoji:f.emoji,color:f.color,owner:me.uid,members:[me.uid],bots:[],createdAt:Date.now(),lastTs:Date.now(),last:"",lastBy:""});onDone(r.id)}catch(e){alert(e.message);setBusy(false)}
+  };
+  return(
+    <Modal onClose={onClose}><div className="p-5 space-y-3">
+      <h3 className="font-bold text-lg">{tr("Create")}</h3>
+      <Seg opts={[["group","Group"],["channel","Channel"]]} v={f.type} set={v=>set({type:v})}/>
+      <input className="inp" placeholder={tr("Name")} maxLength={40} value={f.name} onChange={e=>set({name:e.target.value})}/>
+      <textarea className="inp resize-none" rows={2} placeholder={tr("Description")} maxLength={200} value={f.desc} onChange={e=>set({desc:e.target.value})}/>
+      <Picker f={f} set={set}/>
+      <p className="text-xs mu">{tr("To create a bot, open BotFather in the Bots list and send /newbot")}</p>
+      <button disabled={busy||!f.name.trim()} onClick={go} className={B+" w-full"}>{tr("Create")}</button>
+    </div></Modal>);
+}
+
+function RoomInfo({r,me,admin,users,rooms,onClose,onGone}){
+  const mem=r.members||[],isM=mem.includes(me.uid),own=r.owner===me.uid,rf=doc(db,"chats",r.id);
+  const [e,setE]=useState({desc:r.desc||"",cmds:r.cmds||"",rules:r.rules||"",hook:r.hook||""}),[ok,setOk]=useState(false),[bn,setBn]=useState(""),[err,setErr]=useState("");
+  const up=p=>{setOk(false);setE(o=>({...o,...p}))};
+  const bots=(r.bots||[]).map(id=>rooms.find(x=>x.id===id)).filter(Boolean);
+  const del=async()=>{
+    if(!confirm(tr("Delete")+" "+r.name+"?"))return;
+    const s=await getDocs(query(collection(db,"rmsgs"),where("room","==",r.id)));
+    const b=writeBatch(db);s.docs.slice(0,450).forEach(d=>b.delete(d.ref));b.delete(rf);await b.commit();onGone();
+  };
+  const addBot=async()=>{const u=bn.trim().replace(/^@/,"").toLowerCase(),b=rooms.find(x=>x.type==="bot"&&!x.fath&&(x.username||"").toLowerCase()===u);if(!b)return setErr(tr("Bot not found"));await updateDoc(rf,{bots:arrayUnion(b.id)});setBn("");setErr("")};
+  return(
+    <Modal onClose={onClose}><div className="p-5 space-y-3 text-center">
+      <div className="flex justify-center"><Avatar u={r} size={80}/></div>
+      <div className="text-xl font-bold"><Name u={r}/></div>
+      <div className="text-sm mu">{r.type==="bot"?"@"+(r.username||"bot"):tr(RLAB[r.type])+` · ${mem.length} ${tr(r.type==="channel"?"Subscribers":"Members")}`}</div>
+      {r.desc&&<p className="text-sm">{r.desc}</p>}
+      {r.type!=="bot"&&<div className="text-left text-sm space-y-1.5 max-h-36 overflow-y-auto">{mem.slice(0,60).map(id=>{const u=users.find(x=>idOf(x)===id);return u&&<div key={id} className="flex items-center gap-2"><Avatar u={u} size={26}/><Name u={u}/>{id===r.owner&&<span className="text-xs mu">· {tr("owner")}</span>}</div>})}</div>}
+      {r.type==="group"&&<div className="text-left space-y-2"><div className="text-xs mu">{tr("Bots in this chat")}</div>
+        {bots.map(b=><div key={b.id} className="flex items-center gap-2 text-sm"><Avatar u={b} size={26}/><Name u={b}/><span className="mu">@{b.username}</span>{own&&<button className="ml-auto text-red-500 text-xs" onClick={()=>updateDoc(rf,{bots:arrayRemove(b.id)})}>{tr("Remove")}</button>}</div>)}
+        {own&&<div className="flex gap-2"><input className="inp pill" placeholder="@username_bot" value={bn} onChange={x=>setBn(x.target.value)}/><button onClick={addBot} className={B+" shrink-0"}>{tr("Add bot")}</button></div>}
+        {err&&<p className="text-xs text-red-500">{err}</p>}</div>}
+      {r.type==="bot"&&own&&<div className="space-y-2 text-left">
+        <textarea className="inp resize-none" rows={2} placeholder={tr("Description")} value={e.desc} onChange={x=>up({desc:x.target.value})}/>
+        <div className="text-xs mu">{tr("Commands (one per line: command - description)")}</div><textarea className="inp resize-none font-mono text-xs" rows={3} value={e.cmds} onChange={x=>up({cmds:x.target.value})}/>
+        <div className="text-xs mu">{tr("Bot replies (one per line: trigger => reply)")}</div><textarea className="inp resize-none font-mono text-xs" rows={6} value={e.rules} onChange={x=>up({rules:x.target.value})}/>
+        <div className="text-[11px] mu">Buttons: reply || Label:/cmd, Label:url:https://site.com ; Row2:/cmd</div>
+        <input className="inp" placeholder={tr("Webhook URL (optional)")} value={e.hook} onChange={x=>up({hook:x.target.value})}/>
+        <div><button onClick={async()=>{await updateDoc(rf,e);setOk(true)}} className={B}>{tr("Save")}</button>{ok&&<span className="text-green-500 text-sm ml-2">{tr("Saved")}</span>}</div></div>}
+      {r.type!=="bot"&&!own&&<button onClick={()=>updateDoc(rf,{members:isM?arrayRemove(me.uid):arrayUnion(me.uid)})} className={B+" w-full"}>{tr(isM?"Leave":"Join")}</button>}
+      {(own||admin)&&!r.fath&&<button onClick={del} className="w-full text-red-500 text-sm py-2">{tr("Delete")}</button>}
+    </div></Modal>);
+}
+
+function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
+  const bot=r.type==="bot",th=bot?r.id+"__"+me.uid:r.id;
+  const [ms,setMs]=useState([]),[text,setText]=useState(""),[info,setInfo]=useState(false),[menu,setMenu]=useState(false),end=useRef(null);
+  useEffect(()=>onSnapshot(query(collection(db,"rmsgs"),where("room","==",th)),s=>setMs(s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.ts-b.ts))),[th]);
+  useEffect(()=>{end.current?.scrollIntoView({behavior:"smooth"});onRead&&onRead(r.id)},[ms.length,th]);
+  const isM=(r.members||[]).includes(me.uid),own=r.owner===me.uid;
+  const can=!me.banned&&(bot||(isM&&(r.type==="group"||own)));
+  const who=id=>id===r.id?r.name:(users.find(u=>idOf(u)===id)?.name||rooms.find(x=>x.id===id)?.name||"Deleted");
+  const post=(from,t,kb)=>addDoc(collection(db,"rmsgs"),{room:th,from,text:t,ts:Date.now(),...(kb&&kb.length?{kb:kb.map(b=>({b}))}:{})});
+  const reply=async(b,t)=>{const x=await runBot(b,t,me,th);if(x)post(b.id,x.text,x.kb)};
+  const gbots=(r.bots||[]).map(id=>rooms.find(x=>x.id===id)).filter(Boolean);
+  const cmds=(bot?[r]:gbots).flatMap(b=>(b.cmds||"").split("\n").map(l=>{const i=l.indexOf("-");return i>0?{c:"/"+l.slice(0,i).trim().replace(/^\//,""),d:l.slice(i+1).trim()}:null}).filter(Boolean));
+  const send=async txt=>{
+    const t=(typeof txt==="string"?txt:text).trim();if(!t||!can)return;setText("");setMenu(false);
+    try{
+      await post(me.uid,t);
+      if(!bot)updateDoc(doc(db,"chats",r.id),{last:t.slice(0,60),lastTs:Date.now(),lastBy:me.name});
+      setDoc(doc(db,"stats","global"),{messages:increment(1)},{merge:true});
+      if(r.fath)father(t,me,rooms,x=>setTimeout(()=>post(r.id,x),450));
+      else if(bot)setTimeout(()=>reply(r,t),400);
+      else{const lo=t.toLowerCase(),at=lo.match(/@(\w+)/);gbots.forEach(b=>{const un=(b.username||"").toLowerCase();if((lo.startsWith("/")&&(!at||at[1]===un))||lo.includes("@"+un))setTimeout(()=>reply(b,t),400)})}
+    }catch(e){alert("Could not send: "+e.message)}
+  };
+  const press=(from,d)=>{if(d.startsWith("url:"))window.open(d.slice(4),"_blank","noopener");else{const b=rooms.find(x=>x.id===from);if(b)reply(b,d)}};
+  const sub=bot?(r.username?"@"+r.username:tr("Bot")):`${(r.members||[]).length} ${tr(r.type==="channel"?"Subscribers":"Members")}`;
+  return(<>
+    <header className="border-b bl px-3 py-3 flex items-center gap-3">
+      <button className="md:hidden mu" onClick={onBack}><ArrowLeft/></button>
+      <button className="flex items-center gap-3 min-w-0 text-left" onClick={()=>setInfo(true)}><Avatar u={r} size={42}/>
+        <div className="min-w-0"><Name u={r}/><div className="text-xs mu">{bot?sub:tr(RLAB[r.type])+" · "+sub}</div></div></button>
+    </header>
+    <div className="flex-1 overflow-y-auto p-3 md:p-5 flex flex-col" style={{gap:"var(--gap)",backgroundImage:WALLS[prefs.wall],backgroundSize:WSIZE[prefs.wall]||"auto"}}>
+      {ms.length===0&&<p className="text-center text-sm mu mt-6">{bot&&r.desc?r.desc:tr("No messages yet. Say hi!")}</p>}
+      {ms.map(m=>{const mine=m.from===me.uid;return(
+        <div key={m.id} className={`flex flex-col ${mine?"items-end":"items-start"}`}>
+          <div className={`max-w-[80%] px-3.5 py-2 ${mine?"out":"tx inb"}`} style={{fontSize:"var(--fs)",borderRadius:"var(--br)"}}>
+            {!mine&&<div className="text-xs font-semibold act">{who(m.from)}</div>}
+            <span className="whitespace-pre-wrap break-words">{m.text}</span>
+            {prefs.ts!==false&&<span className={`ml-2 float-right mt-1.5 text-[11px] ${mine?"text-white/80":"mu"}`}>{time(m.ts)}</span>}
+          </div>
+          {m.kb&&<div className="mt-1 space-y-1 w-full max-w-[80%]">{m.kb.map((row,i)=><div key={i} className="flex gap-1">{row.b.map((b,j)=><button key={j} onClick={()=>press(m.from,b.d)} className="flex-1 pn rounded-xl px-3 py-1.5 text-sm act">{b.d.startsWith("url:")?"↗ ":""}{b.t}</button>)}</div>)}</div>}
+        </div>)})}
+      <div ref={end}/>
+    </div>
+    {can?(bot&&ms.length===0?<div className="m-3"><button onClick={()=>send("/start")} className={B+" w-full rounded-full"}>{tr("START")}</button></div>:(
+      <div className="relative m-3 p-1.5 pn rounded-full flex items-center gap-1">
+        {menu&&<div className="absolute bottom-full left-2 mb-2 pn solid rounded-2xl p-2 w-72 max-h-60 overflow-y-auto">{cmds.map((x,i)=><button key={i} onClick={()=>send(x.c)} className="w-full text-left px-3 py-1.5 rounded-xl hv text-sm"><b className="act">{x.c}</b> <span className="mu">{x.d}</span></button>)}</div>}
+        {cmds.length>0&&<button onClick={()=>setMenu(!menu)} className="mu px-2.5 text-xl font-bold">/</button>}
+        <input className="inp pill" style={{background:"transparent"}} placeholder={tr("Write a message…")} value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(prefs.ent!==false||e.ctrlKey)&&send()} maxLength={2000}/>
+        <button onClick={()=>send()} disabled={!text.trim()} className="acb disabled:opacity-40 w-11 h-11 rounded-full grid place-items-center shrink-0"><Send size={18}/></button>
+      </div>)
+    ):<div className="m-3">{!isM&&!me.banned?<button onClick={()=>updateDoc(doc(db,"chats",r.id),{members:arrayUnion(me.uid)})} className={B+" w-full rounded-full"}>{tr("Join to write")}</button>:<div className="pn rounded-full text-center text-sm mu py-3">{me.banned?tr("You are banned from sending messages."):tr("Only the owner can post")}</div>}</div>}
+    {info&&<RoomInfo r={r} me={me} admin={admin} users={users} rooms={rooms} onClose={()=>setInfo(false)} onGone={()=>{setInfo(false);onGone()}}/>}
+  </>);
+}
+
+function GiftCard(function GiftCard({m,g,mine,users,prefs}){
   const nf=g.max&&m.nf,c=RC[g.r];
   return(
-    <div className="flex justify-center py-1"><div className={`relative overflow-hidden ${nf?"text-white":"pn tx"} rounded-xl p-4 text-center max-w-[80%] border-2 ${prefs.anim!==false&&Date.now()-m.ts<4000?"gland":""}`} style={nf?{...nftStyle(nf),borderColor:c,...frameStyle(nf,c)}:{borderColor:c}}>
+    <div className="flex justify-center py-1"><div className={`relative overflow-hidden ${nf?"text-white":"pn tx"} rounded-xl p-4 text-center max-w-[80%] border-2 `} style={nf?{...nftStyle(nf),borderColor:c,...frameStyle(nf,c)}:{borderColor:c}}>
       {nf&&<div className="absolute inset-0 overflow-hidden pointer-events-none select-none" style={{opacity:.22,fontSize:18,lineHeight:"24px",letterSpacing:"10px",wordBreak:"break-all"}}>{PATS[nf.pt%PATS.length].repeat(260)}</div>}
       <div className="relative">
         <div className="flex justify-center"><GImg g={g} size={72}/></div>
@@ -547,7 +707,8 @@ function GiftCard({m,g,mine,users,prefs}){
 function Messenger({me,users,logout,prefs,save}){
   const admin=me.username===ADMIN_USERNAME;
   const [tab,setTab]=useState("chats"),[peer,setPeer]=useState(null),[q,setQ]=useState(""),[text,setText]=useState(""),[emo,setEmo]=useState(false);
-  const [prof,setProf]=useState(null),[giftTo,setGiftTo]=useState(null),[anim,setAnim]=useState(null),[dl,setDl]=useState(0),[hit,setHit]=useState(false);
+  const [prof,setProf]=useState(null),[giftTo,setGiftTo]=useState(null),[anim,setAnim]=useState(null),[dl,setDl]=useState(0),[hit,setHit]=useState(false),[rooms,setRooms]=useState([FATHER]),[room,setRoom]=useState(null),[mk,setMk]=useState(false),[usub,setUsub]=useState("people");
+  const [ub,setUb]=useState(()=>{try{return JSON.parse(localStorage.getItem("bunk_bots"))||[]}catch{return[]}}),[rd,setRd]=useState(()=>{try{return JSON.parse(localStorage.getItem("bunk_rd"))||{}}catch{return{}}});
   const seenIds=useRef(null),pc=useRef(me.coins||0),pr=useRef(prefs);
   pr.current=prefs;
   const [msgs,setMsgs]=useState([]),[ann,setAnn]=useState([]),[stats,setStats]=useState({}),[now,setNow]=useState(Date.now());
@@ -563,14 +724,17 @@ function Messenger({me,users,logout,prefs,save}){
       setMsgs(arr)});
     const u2=onSnapshot(collection(db,"announcements"),s=>setAnn(withId(s)));
     const u3=onSnapshot(doc(db,"stats","global"),s=>setStats(s.data()||{}));
+    const u4=onSnapshot(collection(db,"chats"),s=>setRooms([FATHER,...s.docs.map(d=>({...d.data(),id:d.id}))]));
     const beat=()=>{updateDoc(doc(db,"users",me.uid),{lastSeen:Date.now()}).catch(()=>{});setNow(Date.now())};
     beat(); const i=setInterval(beat,30000);
-    return()=>{u1();u2();u3();clearInterval(i)};
+    return()=>{u1();u2();u3();u4();clearInterval(i)};
   },[me.uid]);
 
   useEffect(()=>{const c=me.coins||0;if(c!==pc.current){setDl(c-pc.current);pc.current=c;const t=setTimeout(()=>setDl(0),1800);return()=>clearTimeout(t)}},[me.coins]);
   const byId=id=>id?users.find(u=>idOf(u)===id):undefined;
-  const peerU=byId(peer);
+  const peerU=byId(peer),roomU=room?rooms.find(r=>r.id===room):undefined;
+  const markRead=id=>setRd(o=>{const n={...o,[id]:Date.now()};try{localStorage.setItem("bunk_rd",JSON.stringify(n))}catch{}return n});
+  const openRoom=id=>{const r=rooms.find(x=>x.id===id);setRoom(id);setPeer(null);setProf(null);setTab("chats");markRead(id);if(r&&r.type==="bot"&&!ub.includes(id)){const n=[...ub,id];setUb(n);try{localStorage.setItem("bunk_bots",JSON.stringify(n))}catch{}}};
   const profU=byId(prof),giftU=byId(giftTo);
   const thread=useMemo(()=>msgs.filter(m=>m.from===peer||m.to===peer),[msgs,peer]);
   const convos=useMemo(()=>{
@@ -587,7 +751,7 @@ function Messenger({me,users,logout,prefs,save}){
   },[msgs,peer]);
   useEffect(()=>{end.current?.scrollIntoView({behavior:"smooth"})},[thread.length,peer]);
 
-  const openChat=id=>{if(!id)return;setPeer(id);setProf(null);setTab("chats")};
+  const openChat=id=>{if(!id)return;setRoom(null);setPeer(id);setProf(null);setTab("chats")};
   const send=async()=>{
     const t=text.trim(),to=idOf(peerU);if(!t||!to||me.banned)return;setText("");setEmo(false);
     try{
@@ -600,15 +764,19 @@ function Messenger({me,users,logout,prefs,save}){
     .filter(u=>tab==="users"||convos[u.uid])
     .filter(u=>(u.name+u.username).toLowerCase().includes(q.toLowerCase()))
     .sort((a,b)=>tab==="users"?a.name.localeCompare(b.name):convos[b.uid].last.ts-convos[a.uid].last.ts);
+  const roomMatch=r=>((r.name||"")+" "+(r.username||"")).toLowerCase().includes(q.toLowerCase());
+  const myRooms=rooms.filter(r=>roomMatch(r)&&(r.owner===me.uid||(r.members||[]).includes(me.uid)||(r.type==="bot"&&ub.includes(r.id))));
+  const found=rooms.filter(r=>roomMatch(r)&&(usub==="bots"?r.type==="bot":r.type!=="bot"));
+  const rows=tab==="users"?(usub==="people"?list.map(u=>({u})):found.map(r=>({r}))):[...list.map(u=>({u,ts:convos[u.uid].last.ts})),...myRooms.map(r=>({r,ts:r.lastTs||r.createdAt}))].sort((a,b)=>b.ts-a.ts);
   const view=tab==="settings"||(tab==="admin"&&admin)?tab:"chat";
-  const showMain=view!=="chat"||!!peerU;
+  const showMain=view!=="chat"||!!peerU||!!roomU;
   const pin=ann[ann.length-1];
   const nav=(id,Icon,label,badge)=>(
     <button key={id} onClick={()=>setTab(id)} className={`relative flex-1 flex flex-col items-center gap-0.5 py-2 rounded-full transition ${tab===id?"dockon":"mu"}`}>
       <Icon size={22}/><span className="text-[10px] font-medium">{label}</span>
       {badge>0&&<span className="absolute top-1 right-[20%] min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] grid place-items-center">{badge}</span>}
     </button>);
-  const inChat=view==="chat"&&!!peerU;
+  const inChat=view==="chat"&&(!!peerU||!!roomU);
   const seenTxt=u=>status(u,now);
 
   return(
@@ -620,12 +788,22 @@ function Messenger({me,users,logout,prefs,save}){
             <div className="min-w-0 flex-1"><Name u={me}/><div className="text-xs mu truncate">{tr("Account settings")}</div></div>
             <span className="relative text-sm mu flex items-center gap-1 shrink-0"><Coins size={14}/>{me.coins||0}{dl!==0&&<span className={`gdelta ${dl<0?"text-red-500":"text-green-500"}`}>{dl>0?"+":""}{dl}</span>}</span>
           </div>
-          <div className="relative"><Search size={16} className="absolute left-4 top-3.5 mu"/>
+          <div className="flex gap-2"><div className="relative flex-1"><Search size={16} className="absolute left-4 top-3.5 mu"/>
             <input className="inp pill pl-10" placeholder={tr("Search")} value={q} onChange={e=>setQ(e.target.value)}/></div>
+            <button title={tr("Create")} onClick={()=>setMk(true)} className="acb w-11 h-11 rounded-full grid place-items-center shrink-0"><Plus size={20}/></button></div>
+          {tab==="users"&&<Seg opts={[["people","People"],["rooms","Groups & Channels"],["bots","Bots"]]} v={usub} set={setUsub}/>}
         </div>
         <div className="flex-1 overflow-y-auto pb-28">
-          {list.length===0&&<p className="text-center text-sm mu p-6">{tab==="users"?tr("No users found."):tr("No chats yet. Open Users to start one.")}</p>}
-          {list.map(u=>{const c=convos[u.uid];return(
+          {rows.length===0&&<p className="text-center text-sm mu p-6">{tab==="users"?tr("No users found."):tr("No chats yet. Open Users to start one.")}</p>}
+          {rows.map(row=>{
+            if(row.r){const r=row.r,un=r.lastTs>(rd[r.id]||0)&&room!==r.id&&r.lastBy&&r.lastBy!==me.name;return(
+              <div key={r.id} onClick={()=>openRoom(r.id)} className={`mx-2 flex items-center gap-3 px-3 py-2.5 rounded-2xl cursor-pointer hv ${room===r.id?"sel":""}`}>
+                <Avatar u={r}/>
+                <div className="min-w-0 flex-1">
+                  <div className="flex justify-between gap-2"><Name u={r}/>{r.last&&<span className="text-xs mu shrink-0">{time(r.lastTs)}</span>}</div>
+                  <div className="flex justify-between gap-2"><span className="text-sm mu truncate">{r.last?`${r.lastBy}: ${r.last}`:tr(RLAB[r.type])+(r.desc?" · "+r.desc:"")}</span>{un&&<span className="w-2.5 h-2.5 mt-1.5 rounded-full acb shrink-0"/>}</div>
+                </div></div>)}
+            const u=row.u,c=convos[u.uid];return(
             <div key={u.uid} onClick={()=>tab==="users"?setProf(idOf(u)):openChat(idOf(u))} className={`mx-2 flex items-center gap-3 px-3 py-2.5 rounded-2xl cursor-pointer hv ${peer===u.uid?"sel":""}`}>
               <span onClick={e=>{e.stopPropagation();setProf(idOf(u))}}><Avatar u={u} dot={online(u,now)}/></span>
               <div className="min-w-0 flex-1">
@@ -644,7 +822,7 @@ function Messenger({me,users,logout,prefs,save}){
           <Megaphone size={16} className="shrink-0 act"/><span className="min-w-0 flex-1"><b>{tr("Announcement:")}</b> {pin.text}</span>
           {admin&&<button onClick={()=>deleteDoc(doc(db,"announcements",pin.id))}><X size={16}/></button>}</div>}
 
-        {view==="admin"?<Admin me={me} users={users} stats={stats} ann={ann} now={now}/>:view==="settings"?<Prefs me={me} logout={logout} prefs={prefs} save={save}/>:!peerU?(
+        {view==="admin"?<Admin me={me} users={users} stats={stats} ann={ann} now={now}/>:view==="settings"?<Prefs me={me} logout={logout} prefs={prefs} save={save}/>:roomU?<RoomChat key={roomU.id} r={roomU} me={me} users={users} rooms={rooms} prefs={prefs} admin={admin} onBack={()=>setRoom(null)} onGone={()=>setRoom(null)} onRead={markRead}/>:!peerU?(
           <div className="flex-1 grid place-items-center mu"><span className="pn rounded-full px-5 py-2 text-sm">{tr("Select a chat to start messaging")}</span></div>
         ):(<>
           <header className="border-b bl px-3 py-3 flex items-center gap-3">
@@ -682,6 +860,7 @@ function Messenger({me,users,logout,prefs,save}){
 
       {profU&&<Profile u={profU} me={me} now={now} onClose={()=>setProf(null)} onChat={openChat} onGift={id=>{setProf(null);setGiftTo(id)}}/>}
       {giftU&&<GiftPicker to={giftU} me={me} free={false} onSent={(g,r)=>prefs.anim!==false&&setAnim({g,no:r&&r.no,nf:r&&r.nf})} onClose={()=>setGiftTo(null)}/>}
+      {mk&&<CreateRoom me={me} onClose={()=>setMk(false)} onDone={id=>{setMk(false);openRoom(id)}}/>}
       {anim&&<GiftAnim a={anim} onDone={()=>setAnim(null)} onHit={()=>{setHit(true);setTimeout(()=>setHit(false),500)}}/>}
     </div>);
 }
