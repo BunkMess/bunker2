@@ -574,7 +574,7 @@ function Admin({me,users,stats,ann,now}){
   };
   const coins=u=>{const v=Number(prompt(`Coins for ${u.name}: add (e.g. 100) or remove (e.g. -100)`,"100"));if(v)upd(u,{coins:increment(Math.round(v))})};
   const fm=all.filter(m=>(nm(m.from)+" "+nm(m.to)+" "+(m.text||"")).toLowerCase().includes(fq.toLowerCase()));
-  const target=users.find(x=>idOf(x)===to)||users.find(x=>idOf(x)!==idOf(me));
+  const target=users.find(x=>idOf(x)===to)||me;
   const tabs={users:"Users",mod:"Moderation",eco:"Gifts & Economy",stats:"Analytics"};
   const card="pn rounded-2xl p-4 shadow-sm space-y-2";
   const btn=(on,c)=>`w-9 h-9 grid place-items-center rounded-lg ${on?c:"sel"}`;
