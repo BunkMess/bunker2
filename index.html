@@ -825,7 +825,7 @@ else if(bot&&(r.username||"").toLowerCase().includes("market"))setTimeout(()=>ma
       else{const lo=t.toLowerCase(),at=lo.match(/@(\w+)/);gbots.forEach(b=>{const un=(b.username||"").toLowerCase();if((lo.startsWith("/")&&(!at||at[1]===un))||lo.includes("@"+un))setTimeout(()=>reply(b,t),400)})}
     }catch(e){alert("Could not send: "+e.message)}
   };
-  const press=(from,d)=>{if(d.startsWith("url:"))window.open(d.slice(4),"_blank","noopener");else{const b=rooms.find(x=>x.id===from);if(b)reply(b,d)}};
+  const press=(from,d)=>{if(d.startsWith("url:"))window.open(d.slice(4),"_blank","noopener");else if(bot&&(r.username||"").toLowerCase().includes("market"))marketBot(d,me,(x,kb)=>post(r.id,x,kb));else{const b=rooms.find(x=>x.id===from);if(b)reply(b,d)}};
   const sub=bot?(r.username?"@"+r.username:tr("Bot")):`${(r.members||[]).length} ${tr(r.type==="channel"?"Subscribers":"Members")}`;
   return(<>
     <header className="border-b bl px-3 py-3 flex items-center gap-3">
