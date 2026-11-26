@@ -571,8 +571,6 @@ function Prefs({me,logout,prefs,save}){
         </div>
       </div></Modal>}
     </div>}
-
-        </div></div>}
       <div className="pn rounded-3xl p-4 text-center space-y-2">
         {ip?<button onClick={async()=>{const e=window.__ip;if(!e)return;e.prompt();await e.userChoice;window.__ip=null;setIp(false)}} className={B+" w-full"}>{tr("Install app")}</button>
           :<p className="text-sm mu">{/iphone|ipad/i.test(navigator.userAgent)&&!navigator.standalone?tr("On iPhone: tap Share, then Add to Home Screen"):tr("Install app")+": "+tr("open the browser menu and choose Install app")}</p>}
