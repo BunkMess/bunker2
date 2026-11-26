@@ -326,16 +326,6 @@ function Onboard({au,users,logout}){
     </div></div>);
 }
 
-async function sellGift(me,x){
-  const price=Math.floor(gf(x.g).c*SELL),ref=doc(db,"users",me.uid);
-  await runTransaction(db,async tx=>{
-    const arr=((await tx.get(ref)).data().gifts||[]).slice(),i=arr.findIndex(y=>y.ts===x.ts&&y.g===x.g&&y.by===x.by);
-    if(i<0)throw new Error("Gift not found");
-    if(Date.now()-arr[i].ts>SELL_MS)throw new Error(tr("Sale expired"));
-    arr.splice(i,1);tx.update(ref,{gifts:arr,coins:increment(price)});
-  });
-}
-
 function Profile({u,me,now,onClose,onChat,onGift}){
   const own=u.uid===me.uid,[note,setNote]=useState("");
   const gs=(u.gifts||[]).filter(x=>has(x.g)).sort((a,b)=>(gf(b.g).max?1:0)-(gf(a.g).max?1:0)||b.ts-a.ts);
