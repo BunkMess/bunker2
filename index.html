@@ -98,6 +98,14 @@ const configured = !firebaseConfig.apiKey.startsWith("YOUR_");
 const app = configured ? initializeApp(firebaseConfig) : null;
 const db = configured ? getFirestore(app) : null; 
 const stg = configured ? getStorage(app) : null;
+  const API_URL="https://workers.dev";
+const apiCall=async(action,body={})=>{
+  const tok=await auth.currentUser.getIdToken();
+  const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify({action,...body})});
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error||"Ошибка сервера");
+  return d;
+};
 const auth = configured ? getAuth(app) : null;
 const SELL=.8, SELL_MS=3*864e5, ONLINE_MS=65000, START_COINS=1000, BONUS=250, PK="vkgram_prefs2";
 const COLORS=["#e5524d","#f08c32","#e0a800","#4cae4f","#2a9fb5","#2787f5","#7b61d9","#d94fa0"];
@@ -218,32 +226,19 @@ const B="acb rounded-xl px-4 py-2 font-semibold disabled:opacity-50";
 // Every user doc gets a defined id/uid (old docs without a uid field fall back to their document ID)
 const fixU=d=>({...d.data(),id:d.id,uid:d.data().uid||d.id});
 const idOf=u=>u?(u.id||u.uid):undefined;
-
+  
 async function giveGift(from,to,id,text,free){
   const fid=idOf(from),g=gf(id);
   if(!fid||!to)throw new Error("Recipient not found. Reload the page and try again.");
-  const ts=Date.now(),entry={g:g.id,by:fid,n:from.name,t:text||"",ts},msg={from:fid,to,participants:[fid,to],type:"gift",gift:g.id,text:text||"",ts,read:false};
-  const stat={gifts:increment(1),messages:increment(1)};
-  if(g.max)entry.nf=msg.nf=rollNft();
-  if(g.max){
-    await runTransaction(db,async tx=>{
-      const ref=doc(db,"nft",g.id),snap=await tx.get(ref),n=snap.exists()?(snap.data().minted||0):0;
-      if(n>=g.max)throw new Error(g.n+" is sold out");
-      entry.no=msg.no=n+1;
-      tx.set(ref,{minted:n+1},{merge:true});
-      if(!free)tx.update(doc(db,"users",fid),{coins:increment(-g.c)});
-      tx.update(doc(db,"users",to),{gifts:arrayUnion(entry)});
-      tx.set(doc(collection(db,"messages")),msg);
-      tx.set(doc(db,"stats","global"),stat,{merge:true});
-    });
-    return {no:entry.no,nf:entry.nf};
-  }
-  const b=writeBatch(db);
-  if(!free)b.update(doc(db,"users",fid),{coins:increment(-g.c)});
-  b.update(doc(db,"users",to),{gifts:arrayUnion(entry)});
-  b.set(doc(collection(db,"messages")),msg);
-  b.set(doc(db,"stats","global"),stat,{merge:true});
-  await b.commit();
+  const nf=g.max?rollNft():null;
+  const res=await apiCall("giveGift",{toUid:to,gid:g.id,text:text||"",free:!!free,nf});
+  const msg={from:fid,to,participants:[fid,to],type:"gift",gift:g.id,text:text||"",ts:res.entry.ts,read:false,...(res.entry.no?{no:res.entry.no,nf:res.entry.nf}:{})};
+  await addDoc(collection(db,"messages"),msg);
+  await setDoc(doc(db,"stats","global"),{gifts:increment(1),messages:increment(1)},{merge:true});
+  return res.entry.no?{no:res.entry.no,nf:res.entry.nf}:undefined;
+}
+async function sellGift(u,x){
+  await apiCall("sellGift",{ts:x.ts,g:x.g});
 }
 
 const Avatar=({u,size=44,dot})=>(
@@ -478,7 +473,7 @@ const BANNERS=[   ["aurora","Аврора","linear-gradient(120deg,var(--acc),#a
   const set=p=>{setOk(false);setF(o=>({...o,...p}))},P=(k,v)=>save({...prefs,[k]:v});
   const left=864e5-(Date.now()-(me.lastBonus||0)),ready=left<=0;
   const sv=async()=>{if(!f.name.trim())return;await updateDoc(ref,{name:f.name.trim(),bio:f.bio.trim(),emoji:f.emoji,color:f.color});setOk(true)};
-  const claim=()=>updateDoc(ref,{coins:increment(BONUS),lastBonus:Date.now()});
+  const claim=async()=>{if(!ready)return;try{await apiCall("claim")}catch(e){alert(e.message)}};
   const pick=async e=>{const file=e.target.files[0];e.target.value="";if(!file)return;setPerr("");try{await updateDoc(ref,{photo:await resize(file)})}catch(x){setPerr(x.message||"Could not load image")}};
   const card="pn rounded-3xl p-5 space-y-3",tile=on=>"rounded-2xl p-2 text-center text-xs border-2 "+(on?"":"border-transparent"),ring=on=>on?{borderColor:"var(--acc)"}:null;
   const lab=t=><div className="text-xs mu uppercase tracking-widest pt-1">{tr(t)}</div>;
@@ -879,10 +874,12 @@ function MiniApp({r,me,onClose}){
     setBusy(false);
   };
 
-  const buyLot=async lot=>{
-    if(lot.seller===me.uid)return;
-    setBusy(true);setMsg("");
-    try{
+ const buyLot=async lot=>{
+  if(!confirm(`Купить ${gf(lot.item.g).n} за ${lot.price} 🪙?`))return;
+  setBusy(true);
+  try{await apiCall("marketBuy",{lotId:lot.id});alert("NFT успешно куплен!")}catch(e){alert("Ошибка: "+e.message)}
+  setBusy(false);
+};
       await runTransaction(db,async tx=>{
         const lref=doc(db,"market",lot.id),lsnap=await tx.get(lref);
         if(!lsnap.exists())throw new Error("Лот уже выкупили!");
