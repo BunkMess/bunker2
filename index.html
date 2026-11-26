@@ -16,8 +16,8 @@
 "react-dom/client":"https://esm.sh/react-dom@18.3.1/client?external=react",
 "lucide-react":"https://esm.sh/lucide-react@0.383.0?external=react",
 "firebase/app":"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
-"firebase/auth":"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
-"firebase/firestore":"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"}}
+"firebase/auth":"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js","firebase/firestore":"https://gstatic.com",
+"firebase/storage":"https://gstatic.com"}}
 </script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 
@@ -67,11 +67,11 @@ html,body{margin:0;background:#0a0a0b}body{font-family:system-ui,-apple-system,"
 <script type="text/babel" data-type="module">
 import React,{useState,useEffect,useMemo,useRef} from "react";
 import {createRoot} from "react-dom/client";
-import {Send,MessageCircle,Users,Settings,Shield,Search,Smile,Check,CheckCheck,BadgeCheck,Ban,Trash2,Megaphone,ArrowLeft,LogOut,X,Gift,Coins,User,Palette,Globe,Camera,Wallet,Plus} from "lucide-react";
+import {Send,MessageCircle,Users,Settings,Shield,Search,Smile,Check,CheckCheck,BadgeCheck,Ban,Trash2,Megaphone,ArrowLeft,LogOut,X,Gift,Coins,User,Palette,Globe,Camera,Wallet,Plus,Paperclip,FileText,Download} from "lucide-react";
 import {initializeApp} from "firebase/app";
 import {getAuth,RecaptchaVerifier,signInWithPhoneNumber,onAuthStateChanged,signOut} from "firebase/auth";
 import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,query,where,writeBatch,increment,arrayUnion,arrayRemove,getDocs,runTransaction} from "firebase/firestore";
-
+import {getStorage,ref as sRef,uploadBytes,getDownloadURL} from "firebase/storage";
 /* ============ 1. FIREBASE CONFIG: PASTE YOUR KEYS HERE ============ */
 const firebaseConfig = {
   apiKey: "AIzaSyBF4HDV3bAETWBmcG446ookE5q1GD5dwd8",
@@ -95,9 +95,9 @@ const LOT = {};
 
 const configured = !firebaseConfig.apiKey.startsWith("YOUR_");
 const app = configured ? initializeApp(firebaseConfig) : null;
-const db = configured ? getFirestore(app) : null;
+const db = configured ? getFirestore(app) : null; 
+const stg = configured ? getStorage(app) : null;
 const auth = configured ? getAuth(app) : null;
-
 const SELL=.8, SELL_MS=3*864e5, ONLINE_MS=65000, START_COINS=1000, BONUS=250, PK="vkgram_prefs2";
 const COLORS=["#e5524d","#f08c32","#e0a800","#4cae4f","#2a9fb5","#2787f5","#7b61d9","#d94fa0"];
 const AVATARS=["🦊","🐼","🐯","🦁","🐸","🐵","🐙","🦄","🐧","🤖","👻","🌸"];
@@ -212,7 +212,7 @@ const time=t=>new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"
 const seen=t=>new Date(t).toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",hourCycle:H12?"h12":"h23"});
 const online=(u,now)=>!u.hide&&now-(u.lastSeen||0)<ONLINE_MS;
 const status=(u,now)=>online(u,now)?tr("online"):u.hide?tr("last seen recently"):tr("last seen ")+seen(u.lastSeen||u.createdAt);
-const prev=m=>m.type==="gift"?"🎁 "+(has(m.gift)?gf(m.gift).n:"Gift"):m.text;
+const prev=m=>m.type==="gift"?"🎁 "+(has(m.gift)?gf(m.gift).n:"Gift"):m.type==="img"?"🖼️ Фото":m.type==="vid"?"🎬 Видео":m.type==="file"?"📎 "+(m.fn||"Файл"):m.text; const packImg=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const M=960,sc=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext("2d").drawImage(im,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.82))};im.onerror=()=>rej(new Error("Ошибка фото"));im.src=r.result};r.onerror=rej;r.readAsDataURL(file)}); const upMedia=async(file,uid)=>{   if(file.type.startsWith("image/")&&!file.type.includes("gif"))return{type:"img",url:await packImg(file),fn:file.name};   if(file.size>25*1024*1024)throw new Error("Максимальный размер файла — 25 МБ");   const rf=sRef(stg,`chat/${uid}/${Date.now()}_${file.name.replace(/[^\w.-]/g,"_")}`);   await uploadBytes(rf,file);   const url=await getDownloadURL(rf);   return{type:file.type.startsWith("video/")?"vid":"file",url,fn:file.name,sz:file.size}; }; const MediaBody=({m})=>{   if(m.type==="img")return <div className="space-y-1"><img src={m.url} alt="" onClick={()=>window.open(m.url,"_blank")} className="rounded-xl max-h-64 max-w-full object-cover cursor-pointer"/>{m.text&&<div className="whitespace-pre-wrap break-words">{m.text}</div>}</div>;   if(m.type==="vid")return <div className="space-y-1"><video src={m.url} controls playsInline className="rounded-xl max-h-64 max-w-full bg-black"/>{m.text&&<div className="whitespace-pre-wrap break-words">{m.text}</div>}</div>;   if(m.type==="file")return <a href={m.url} target="_blank" rel="noopener" download={m.fn} className="flex items-center gap-2.5 p-2 rounded-xl bg-black/15 hover:bg-black/25 transition"><FileText size={24} className="shrink-0"/><div className="min-w-0 flex-1"><div className="text-sm font-semibold truncate">{m.fn||"Файл"}</div>{m.sz&&<div className="text-[11px] opacity-75">{(m.sz/1048576).toFixed(1)} МБ</div>}</div><Download size={16} className="shrink-0"/></a>;   return <MediaBody m={m}/>; };;
 const B="acb rounded-xl px-4 py-2 font-semibold disabled:opacity-50";
 // Every user doc gets a defined id/uid (old docs without a uid field fall back to their document ID)
 const fixU=d=>({...d.data(),id:d.id,uid:d.data().uid||d.id});
@@ -946,7 +946,7 @@ function MiniApp({r,me,onClose}){
 }
 function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
   const bot=r.type==="bot",th=bot?r.id+"__"+me.uid:r.id;
-  const [ms,setMs]=useState([]),[text,setText]=useState(""),[info,setInfo]=useState(false),[menu,setMenu]=useState(false),[appOpen,setAppOpen]=useState(false),end=useRef(null);   const hasApp=bot&&((r.username||"")+(r.name||"")).toLowerCase().match(/market|маркет/);
+   const [ms,setMs]=useState([]),[text,setText]=useState(""),[info,setInfo]=useState(false),[menu,setMenu]=useState(false),[appOpen,setAppOpen]=useState(false),[upBusy,setUpBusy]=useState(false),end=useRef(null),rfRef=useRef(null);
   useEffect(()=>onSnapshot(query(collection(db,"rmsgs"),where("room","==",th)),s=>setMs(s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.ts-b.ts))),[th]);
   useEffect(()=>{end.current?.scrollIntoView({behavior:"smooth"});onRead&&onRead(r.id)},[ms.length,th]);
   const isM=(r.members||[]).includes(me.uid),own=r.owner===me.uid;
@@ -957,6 +957,13 @@ function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
   const gbots=(r.bots||[]).map(id=>rooms.find(x=>x.id===id)).filter(Boolean);
   const cmds=(bot?[r]:gbots).flatMap(b=>(b.cmds||"").split("\n").map(l=>{const i=l.indexOf("-");return i>0?{c:"/"+l.slice(0,i).trim().replace(/^\//,""),d:l.slice(i+1).trim()}:null}).filter(Boolean));
   const send=async txt=>{
+    const sendRoomFile=async e=>{
+  const file=e.target.files[0];e.target.value="";if(!file||!can)return;
+  setUpBusy(true);
+  try{const md=await upMedia(file,me.uid);await addDoc(collection(db,"rmsgs"),{room:th,from:me.uid,...md,text:text.trim(),ts:Date.now()});setText("");if(!bot)updateDoc(doc(db,"chats",r.id),{last:prev(md),lastTs:Date.now(),lastBy:me.name})}
+  catch(err){alert("Ошибка загрузки: "+err.message)}
+  setUpBusy(false);
+};
     const t=(typeof txt==="string"?txt:text).trim();if(!t||!can)return;setText("");setMenu(false);
     try{
       await post(me.uid,t);
@@ -982,7 +989,7 @@ function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
         <div key={m.id} className={`flex flex-col ${mine?"items-end":"items-start"}`}>
           <div className={`max-w-[80%] px-3.5 py-2 ${mine?"out":"tx inb"}`} style={{fontSize:"var(--fs)",borderRadius:"var(--br)"}}>
             {!mine&&<div className="text-xs font-semibold act">{who(m.from)}</div>}
-            <span className="whitespace-pre-wrap break-words">{m.text}</span>
+            <MediaBody m={m}/>
             {prefs.ts!==false&&<span className={`ml-2 float-right mt-1.5 text-[11px] mu`}>{time(m.ts)}</span>}
           </div>
           {m.kb&&<div className="mt-1 space-y-1 w-full max-w-[80%]">{m.kb.map((row,i)=><div key={i} className="flex gap-1">{row.b.map((b,j)=><button key={j} onClick={()=>press(m.from,b.d)} className="flex-1 pn rounded-xl px-3 py-1.5 text-sm act">{b.d.startsWith("url:")?"↗ ":""}{b.t}</button>)}</div>)}</div>}
@@ -993,6 +1000,8 @@ function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
       <div className="relative m-3 p-1.5 pn rounded-full flex items-center gap-1">
         {menu&&<div className="absolute bottom-full left-2 mb-2 pn solid rounded-2xl p-2 w-72 max-h-60 overflow-y-auto">{cmds.map((x,i)=><button key={i} onClick={()=>send(x.c)} className="w-full text-left px-3 py-1.5 rounded-xl hv text-sm"><b className="act">{x.c}</b> <span className="mu">{x.d}</span></button>)}</div>}
         {cmds.length>0&&<button onClick={()=>setMenu(!menu)} className="mu px-2.5 text-xl font-bold">/</button>}
+        <input ref={rfRef} type="file" hidden onChange={sendRoomFile}/>
+<button disabled={upBusy} onClick={()=>rfRef.current.click()} title="Прикрепить файл" className="mu px-2 disabled:opacity-40"><Paperclip size={20}/></button>
         <input className="inp pill" style={{background:"transparent"}} placeholder={tr("Write a message…")} value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(prefs.ent!==false||e.ctrlKey)&&send()} maxLength={2000}/>
         <button onClick={()=>send()} disabled={!text.trim()} className="acb disabled:opacity-40 w-11 h-11 rounded-full grid place-items-center shrink-0"><Send size={18}/></button>
       </div>)
@@ -1029,6 +1038,15 @@ function GiftCard({m,g,mine,users,prefs}){
 function Messenger({me,users,logout,prefs,save}){
   const admin=me.username===ADMIN_USERNAME;
   const [tab,setTab]=useState("chats"),[peer,setPeer]=useState(null),[q,setQ]=useState(""),[text,setText]=useState(""),[emo,setEmo]=useState(false);
+  const [upBusy,setUpBusy]=useState(false),fRef=useRef(null);
+const sendFile=async e=>{
+  const file=e.target.files[0];e.target.value="";const to=idOf(peerU);if(!file||!to||me.banned)return;
+  setUpBusy(true);
+  try{const md=await upMedia(file,me.uid);await addDoc(collection(db,"messages"),{from:idOf(me),to,participants:[idOf(me),to],...md,text:text.trim(),ts:Date.now(),read:false});setText("");setDoc(doc(db,"stats","global"),{messages:increment(1)},{merge:true})}
+  catch(err){alert("Ошибка загрузки: "+err.message)}
+  setUpBusy(false);
+};
+
   const [prof,setProf]=useState(null),[giftTo,setGiftTo]=useState(null),[anim,setAnim]=useState(null),[dl,setDl]=useState(0),[hit,setHit]=useState(false),[rooms,setRooms]=useState([FATHER]),[room,setRoom]=useState(null),[mk,setMk]=useState(false),[usub,setUsub]=useState("people");
   const [ub,setUb]=useState(()=>{try{return JSON.parse(localStorage.getItem("bunk_bots"))||[]}catch{return[]}}),[rd,setRd]=useState(()=>{try{return JSON.parse(localStorage.getItem("bunk_rd"))||{}}catch{return{}}});
   const seenIds=useRef(null),pc=useRef(me.coins||0),pr=useRef(prefs);
@@ -1160,7 +1178,7 @@ function Messenger({me,users,logout,prefs,save}){
               <GiftCard key={m.id} m={m} g={g} mine={mine} users={users} prefs={prefs}/>):(
               <div key={m.id} className={`flex ${mine?"justify-end":"justify-start"}`}>
                 <div className={`max-w-[80%] px-3.5 py-2 ${mine?"out":"tx inb"}`} style={{fontSize:"var(--fs)",borderRadius:"var(--br)"}}>
-                  <span className="whitespace-pre-wrap break-words">{m.text}</span>
+                  <MediaBody m={m}/>
                   <span className={`ml-2 float-right mt-1.5 text-[11px] inline-flex items-center gap-0.5 mu`}>{prefs.ts!==false&&time(m.ts)}{mine&&prefs.rc!==false&&(m.read?<CheckCheck size={14}/>:<Check size={14}/>)}</span>
                 </div></div>)})}
             <div ref={end}/>
@@ -1170,6 +1188,8 @@ function Messenger({me,users,logout,prefs,save}){
               {emo&&<div className="absolute bottom-full left-2 mb-2 pn solid rounded-2xl p-2 grid grid-cols-8 gap-1 w-72">
                 {EMOJIS.map(e=><button key={e} onClick={()=>setText(t=>t+e)} className="text-xl hv rounded-full p-1">{e}</button>)}</div>}
               <button onClick={()=>setEmo(!emo)} className="mu p-2"><Smile size={24}/></button>
+              <input ref={fRef} type="file" hidden onChange={sendFile}/>
+<button disabled={upBusy} onClick={()=>fRef.current.click()} title="Прикрепить фото, видео или файл" className="mu p-2 disabled:opacity-40"><Paperclip size={21}/></button>
               <input className="inp pill" style={{background:"transparent"}} placeholder={tr("Write a message…")} value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(prefs.ent!==false||e.ctrlKey)&&send()} maxLength={2000}/>
               <button onClick={send} disabled={!text.trim()} className="acb disabled:opacity-40 w-11 h-11 rounded-full grid place-items-center shrink-0"><Send size={18}/></button>
             </div>)}
