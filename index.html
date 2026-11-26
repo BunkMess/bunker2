@@ -975,6 +975,13 @@ function RoomChat({r,me,users,rooms,prefs,admin,onBack,onGone,onRead}){
   const reply=async(b,t)=>{if(((b.username||"")+(b.name||"")).toLowerCase().match(/market|маркет/))return marketBot(t,me,(x,kb)=>post(b.id,x,kb));const x=await runBot(b,t,me,th);if(x)post(b.id,x.text,x.kb)};
   const gbots=(r.bots||[]).map(id=>rooms.find(x=>x.id===id)).filter(Boolean);
   const cmds=(bot?[r]:gbots).flatMap(b=>(b.cmds||"").split("\n").map(l=>{const i=l.indexOf("-");return i>0?{c:"/"+l.slice(0,i).trim().replace(/^\//,""),d:l.slice(i+1).trim()}:null}).filter(Boolean));
+    const sendRoomFile=async e=>{
+    const file=e.target.files[0];e.target.value="";if(!file||!can)return;
+    setUpBusy(true);
+    try{const md=await upMedia(file,me.uid);await addDoc(collection(db,"rmsgs"),{room:th,from:me.uid,...md,text:text.trim(),ts:Date.now()});setText("");if(!bot)updateDoc(doc(db,"chats",r.id),{last:prev(md),lastTs:Date.now(),lastBy:me.name})}
+    catch(err){alert("Ошибка загрузки: "+err.message)}
+    setUpBusy(false);
+  };
   const send=async txt=>{
     const sendRoomFile=async e=>{
   const file=e.target.files[0];e.target.value="";if(!file||!can)return;
