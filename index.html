@@ -98,7 +98,7 @@ const configured = !firebaseConfig.apiKey.startsWith("YOUR_");
 const app = configured ? initializeApp(firebaseConfig) : null;
 const db = configured ? getFirestore(app) : null; 
 const stg = configured ? getStorage(app) : null;
-const API_URL="https://bunkmess-api.blackrussiatop073.workers.dev";
+const API_URL="https://bunkmess-api.onrender.com";
 const apiCall=async(action,body={})=>{
   const tok=await auth.currentUser.getIdToken();
   const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify({action,...body})});
