@@ -2,25 +2,36 @@ name: Build BunkMESS EXE
 on:
   workflow_dispatch:
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
     steps:
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Pake CLI
-        run: npm install -g pake-cli
-
-      - name: Build BunkMESS.exe
-        run: pake "https://github.io" --name "BunkMESS" --width 1150 --height 760
-
-      - name: Upload EXE Artifact
+          node-version: 22
+      - name: Build Portable EXE
+        shell: pwsh
+        run: |
+          mkdir app
+          cd app
+          '{"name":"bunkmess","version":"1.0.0","main":"main.js","build":{"appId":"com.bunkmess.app","productName":"BunkMESS","win":{"target":"portable"}}}' | Out-File -Encoding utf8 package.json
+          @'
+          const { app, BrowserWindow } = require("electron");
+          app.whenReady().then(() => {
+            const w = new BrowserWindow({
+              width: 1200,
+              height: 800,
+              title: "BunkMESS",
+              autoHideMenuBar: true
+            });
+            w.loadURL("https://github.io");
+          });
+          app.on("window-all-closed", () => app.quit());
+          '@ | Out-File -Encoding utf8 main.js
+          npm install electron@33.2.0 electron-builder@25.1.8 --save-dev
+          npx electron-builder --win portable
+      - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
-          name: BunkMESS-Windows-EXE
-          path: "**/*.exe"
+          name: BunkMESS-Portable-EXE
+          path: app/dist/*.exe
