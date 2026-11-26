@@ -24,7 +24,7 @@ jobs:
               title: "BunkMESS",
               autoHideMenuBar: true
             });
-            w.loadURL("https://github.io");
+            w.loadURL("https://bunkmess.github.io/bunker2/");
           });
           app.on("window-all-closed", () => app.quit());
           '@ | Out-File -Encoding utf8 main.js
