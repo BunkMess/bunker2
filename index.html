@@ -231,7 +231,7 @@ async function giveGift(from,to,id,text,free){
   const fid=idOf(from),g=gf(id);
   if(!fid||!to)throw new Error("Recipient not found. Reload the page and try again.");
   const nf=g.max?rollNft():null;
-  const res=await apiCall("giveGift",{toUid:to,gid:g.id,text:text||"",free:!!free,nf});
+  const res=await apiCall("giveGift",{toUid:to,gid:g.id||id,text:text||"",free:!!free,nf});
   const msg={from:fid,to,participants:[fid,to],type:"gift",gift:g.id,text:text||"",ts:res.entry.ts,read:false,...(res.entry.no?{no:res.entry.no,nf:res.entry.nf}:{})};
   await addDoc(collection(db,"messages"),msg);
   await setDoc(doc(db,"stats","global"),{gifts:increment(1),messages:increment(1)},{merge:true});
